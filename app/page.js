@@ -1,22 +1,24 @@
 "use client";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { CSSTransition, SwitchTransition } from "react-transition-group";
-import { Snackbar, Alert as MuiAlert } from "@mui/material";
-import styles from "./page.module.css";
-
-const Alert = MuiAlert;
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [view, setView] = useState("initial");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [open, setOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [severity, setSeverity] = useState("info");
+  const [isLoading, setIsLoading] = useState(false);
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    message: "",
+    title: "",
+    variant: "default",
+  });
   const router = useRouter();
 
   const handleViewChange = (newView) => {
@@ -25,6 +27,7 @@ export default function Home() {
 
   const handleSubmit = async (e, type) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/auth/${type}`, {
         method: "POST",
@@ -34,12 +37,16 @@ export default function Home() {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      console.log(data);
 
       if (response.ok) {
-        setMessage(`${type === "login" ? "Login" : "Registration"} successful`);
-        setSeverity("success");
-        setOpen(true);
+        setAlertInfo({
+          show: true,
+          title: "Success",
+          message: `${
+            type === "login" ? "Login" : "Registration"
+          } successful, Setting up your board..`,
+          variant: "default",
+        });
         setTimeout(() => {
           router.push(`/home?id=${data.userId}`);
         }, 2000);
@@ -47,74 +54,86 @@ export default function Home() {
         throw new Error(data.message || `${type} failed`);
       }
     } catch (error) {
-      setMessage(error.message);
-      setSeverity("error");
-      setOpen(true);
+      setAlertInfo({
+        show: true,
+        title: "Error",
+        message: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const handleClose = (event, reason) => {
-    if (reason === "clickaway") return;
-    setOpen(false);
   };
 
   const renderContent = () => {
     switch (view) {
       case "initial":
         return (
-          <div className={styles.actionItems}>
-            <div className={styles.textContainer}>
-              <h1>Welcome to Castle.ai</h1>
-              <p>Your move, powered by AI</p>
-            </div>
-            <div className={styles.buttonContainer}>
-              <button
-                className={styles.Button}
+          <div className="flex flex-col items-center space-y-12">
+            <h1 className="text-6xl font-bold">Welcome to Castle.ai</h1>
+            <p className="text-2xl">Your move, powered by AI</p>
+            <div className="flex space-x-12">
+              <Button
+                variant="default"
                 onClick={() => handleViewChange("login")}
+                className="text-2xl py-3 px-6"
               >
                 Login
-              </button>
-              <button
-                className={styles.Button}
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => handleViewChange("register")}
+                className="text-2xl py-3 px-6"
               >
                 Register
-              </button>
+              </Button>
             </div>
           </div>
         );
       case "login":
       case "register":
         return (
-          <div className={styles.actionItems}>
-            <div
-              className={styles.backButton}
+          <div className="flex flex-col items-center space-y-6">
+            <Button
+              variant="ghost"
+              className="self-start"
               onClick={() => handleViewChange("initial")}
             >
-              <ArrowBackIcon />
-            </div>
-            <form onSubmit={(e) => handleSubmit(e, view)}>
-              <div className={styles.formContainer}>
-                <input
-                  type="text"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email"
-                  required
-                  className={styles.inputField}
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password"
-                  required
-                  className={styles.inputField}
-                />
-                <button type="submit" className={styles.Button}>
-                  {view === "login" ? "Log In" : "Register"}
-                </button>
-              </div>
+              <ArrowBackIcon className="w-9 h-9" />
+            </Button>
+            <form
+              onSubmit={(e) => handleSubmit(e, view)}
+              className="space-y-6 w-full"
+            >
+              <Input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                className="text-xl py-3 px-4"
+              />
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="text-xl py-3 px-4"
+              />
+              <Button
+                type="submit"
+                className="w-full text-2xl py-3"
+                disabled={isLoading}
+              >
+                {isLoading
+                  ? view === "login"
+                    ? "Logging in..."
+                    : "Registering..."
+                  : view === "login"
+                  ? "Log In"
+                  : "Register"}
+              </Button>
             </form>
           </div>
         );
@@ -124,54 +143,32 @@ export default function Home() {
   };
 
   return (
-    <div className={styles.landingBox}>
-      <div className={styles.landingContainer}>
-        <div className={styles.logoWrapper}>
-          <Image
-            src="/main.gif"
-            alt="Logo"
-            width={100}
-            height={100}
-            className={styles.logoImage}
-          />
-        </div>
-        <div className={styles.actionItemsWrapper}>
-          <SwitchTransition mode="out-in">
-            <CSSTransition
-              key={view}
-              classNames={{
-                enter: styles["fade-enter"],
-                enterActive: styles["fade-enter-active"],
-                exit: styles["fade-exit"],
-                exitActive: styles["fade-exit-active"],
-              }}
-              timeout={300}
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-col md:flex-row items-center justify-center space-y-12 md:space-y-0 md:space-x-12">
+        <Image
+          src="/main.gif"
+          alt="Logo"
+          width={600}
+          height={600}
+          className="object-contain"
+        />
+        <div className="w-full max-w-2xl">
+          {renderContent()}
+          {alertInfo.show && (
+            <Alert
+              variant={alertInfo.variant}
+              className="fixed top-6 right-6 w-96 p-4 shadow-lg"
             >
-              <div className={styles["transition-wrapper"]}>
-                {renderContent()}
+              <div className="flex items-center space-x-3">
+                <ErrorOutlineIcon className="h-7 w-7 flex-shrink-0" />
+                <AlertDescription className="text-lg">
+                  {alertInfo.message}
+                </AlertDescription>
               </div>
-            </CSSTransition>
-          </SwitchTransition>
+            </Alert>
+          )}
         </div>
       </div>
-      <Snackbar
-        open={open}
-        autoHideDuration={2000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <Alert
-          onClose={handleClose}
-          severity={severity}
-          sx={{
-            width: "100%",
-            backgroundColor: "white",
-            color: "black",
-          }}
-        >
-          {message}
-        </Alert>
-      </Snackbar>
     </div>
   );
 }
