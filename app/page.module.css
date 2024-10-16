@@ -1,165 +1,332 @@
-.page {
-  --gray-rgb: 0, 0, 0;
-  --gray-alpha-200: rgba(var(--gray-rgb), 0.08);
-  --gray-alpha-100: rgba(var(--gray-rgb), 0.05);
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-
-  display: grid;
-  grid-template-rows: 20px 1fr 20px;
-  align-items: center;
-  justify-items: center;
-  min-height: 100svh;
-  padding: 80px;
-  gap: 64px;
-  font-family: var(--font-geist-sans);
-}
-
-@media (prefers-color-scheme: dark) {
-  .page {
-    --gray-rgb: 255, 255, 255;
-    --gray-alpha-200: rgba(var(--gray-rgb), 0.145);
-    --gray-alpha-100: rgba(var(--gray-rgb), 0.06);
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-  }
-}
-
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  grid-row-start: 2;
-}
-
-.main ol {
-  font-family: var(--font-geist-mono);
-  padding-left: 0;
-  margin: 0;
-  font-size: 14px;
-  line-height: 24px;
-  letter-spacing: -0.01em;
-  list-style-position: inside;
-}
-
-.main li:not(:last-of-type) {
-  margin-bottom: 8px;
-}
-
-.main code {
-  font-family: inherit;
-  background: var(--gray-alpha-100);
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.ctas {
-  display: flex;
-  gap: 16px;
-}
-
-.ctas a {
-  appearance: none;
-  border-radius: 128px;
-  height: 48px;
-  padding: 0 20px;
-  border: none;
-  border: 1px solid transparent;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 20px;
-  font-weight: 500;
-}
-
-a.primary {
-  background: var(--foreground);
-  color: var(--background);
-  gap: 8px;
-}
-
-a.secondary {
-  border-color: var(--gray-alpha-200);
-  min-width: 180px;
+.mainContainer {
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .footer {
-  grid-row-start: 3;
-  display: flex;
-  gap: 24px;
-}
-
-.footer a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.footer img {
-  flex-shrink: 0;
-}
-
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
-
-  .footer a:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-}
-
-@media (max-width: 600px) {
-  .page {
-    padding: 32px;
-    padding-bottom: 80px;
-  }
-
-  .main {
-    align-items: center;
-  }
-
-  .main ol {
+    padding: 5px;
+    width: 100vw;
     text-align: center;
-  }
-
-  .ctas {
-    flex-direction: column;
-  }
-
-  .ctas a {
-    font-size: 14px;
-    height: 40px;
-    padding: 0 16px;
-  }
-
-  a.secondary {
-    min-width: auto;
-  }
-
-  .footer {
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-  }
+    position: fixed;
+    bottom: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
+.landingBox {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    min-width: 100vh;
+    background-color: #000000;
+}
+
+.landingContainer {
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    background-color: black;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.logoWrapper,
+.actionItemsWrapper {
+    width: 50%;
+}
+
+.logoImage {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+
+.actionItemsWrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.actionItems {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    gap: 40px;
+}
+
+.actionItems h1 {
+    font-size: 40px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.textContainer p {
+    font-size: 20px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.Button {
+    background-color: #0070f3;
+    background-color: black;
+    color: white;
+    border: 2px solid white;
+    width: 180px;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 5px;
+    text-decoration: none;
+}
+
+.ButtonWhite {
+    text-decoration: none;
+    background-color: white;
+    color: black;
+    border: 2px solid white;
+    width: 140px;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 5px;
+}
+
+.largeBtn {
+    width: 100%;
+    text-decoration: none;
+}
+
+.Button:hover {
+    background-color: white;
+    color: black;
+}
+
+.buttonContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.inputField {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px solid white;
+    border-radius: 5px;
+    background-color: black;
+    color: white;
+    font-size: 16px;
+}
+
+.backButton {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    cursor: pointer;
+    color: white;
+    align-self: flex-start;
+}
+
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+/* Add a wrapper for the transitioning content */
+.transition-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.navBar {
+    position: fixed;
+    top: 10px;
+    display: flex;
+    width: 90%;
+    justify-content: flex-end;
+    /* Aligns the navbar to the right */
+    padding: 10px 20px;
+    background-color: black;
+    /* Sets the background to black */
+}
+
+.navBar ul {
+    list-style: none;
+    /* Removes default bullet points */
+    display: flex;
+    /* Makes the list items appear horizontally */
+    gap: 20px;
+    /* Adds space between the list items */
+    margin: 0;
+    /* Resets default margin */
+    padding: 0;
+    /* Resets default padding */
+}
+
+.navBar li {
+    display: inline;
+}
+
+.navBar a {
+    text-decoration: none;
+    /* Removes underline from links */
+    color: white;
+    /* Text color white for a black background */
+    font-size: 16px;
+    font-weight: normal;
+    /* Default weight */
+    position: relative;
+    /* Needed for the underline effect */
+    transition: all 0.3s ease;
+    /* Smooth transition for hover effects */
+}
+
+.navBar a:hover {
+    font-weight: bold;
+    /* Bolds the text on hover */
+    color: white;
+    /* Keeps the text color white */
+    text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.3);
+    /* Adds light white shadow */
+}
+
+.navBar a::after {
+    content: "";
+    position: absolute;
+    width: 0;
+    height: 2px;
+    background-color: white;
+    /* White underline */
+    bottom: -5px;
+    /* Positions the underline slightly below the text */
+    left: 0;
+    transition: width 0.3s ease;
+    /* Smooth transition for underline */
+}
+
+.navBar a:hover::after {
+    width: 100%;
+    /* Full width underline on hover */
+}
+
+.custom {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 60%;
+    padding: 10px;
+    font-size: 20px;
+}
+
+.gif {
+    max-width: 50px;
+    height: auto;
+    margin-right: 12px;
+}
+
+.playContainer {
+    width: 100%;
+}
+
+.play {
+    display: flex;
+    flex-direction: column;
+}
+
+.play .navBar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+.playContainer .mainContainer {
+    display: flex;
+    flex-direction: row;
+    margin-top: 50px;
+    gap: 40px;
+}
+
+.play .leftSection {
+    flex: 1;
+}
+
+.mainContainer .rightSection {
+    display: flex;
+    flex-direction: column;
+    width: 550px;
+    height: 70vh;
+    margin-left: 20px;
+    gap: 15px;
+}
+
+.play .rightSection button {
+    margin-bottom: 10px;
+}
+
+.play .rightSection button:nth-child(3) {
+    margin-bottom: 20px;
+}
+
+.movesSection {
+    height: 600px;
+    border: 2px solid white;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.modesSection {
+    height: 100px;
+    display: flex;
+    flex-direction: row;
+}
+
+@media (max-width: 768px) {
+    .landingContainer {
+        flex-direction: column;
+    }
+
+    .logoWrapper,
+    .actionItemsWrapper {
+        width: 100%;
+    }
+
+    .actionItems {
+        border-left: none;
+    }
+}
+
+.learnContainer{
+    background-color: red;
 }
