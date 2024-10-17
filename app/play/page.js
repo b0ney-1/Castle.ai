@@ -3,11 +3,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { atob } from "buffer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,12 +30,14 @@ import {
 
 function Play() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [game, setGame] = useState(new Chess());
   const [mode, setMode] = useState("easy");
   const [gameStarted, setGameStarted] = useState(false);
   const [moveHistory, setMoveHistory] = useState([]);
   const [moveIndex, setMoveIndex] = useState(0);
   const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState("");
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userColor, setUserColor] = useState("white");
@@ -45,7 +46,18 @@ function Play() {
 
   useEffect(() => {
     setMounted(true);
-    fetchUserData();
+    const id = searchParams.get("id");
+    if (id) {
+      setUserId(id);
+      fetchUserData(id);
+    } else {
+      const token = localStorage.getItem("jwtToken");
+      if (!token) {
+        router.push("/");
+      } else {
+        fetchUserData(null, token);
+      }
+    }
 
     const handleBeforeUnload = (e) => {
       e.preventDefault();
@@ -63,24 +75,23 @@ function Play() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, []);
+  }, [searchParams, router]);
 
-  const fetchUserData = async () => {
+  const fetchUserData = async (id, token) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-      if (!token) {
-        throw new Error("No token found");
-      }
+      const url = id ? `/api/user?id=${id}` : "/api/user";
+      const headers = token
+        ? { Authorization: `Bearer ${token}` }
+        : { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` };
 
-      const response = await fetch("/api/user", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(url, { headers });
 
       if (response.ok) {
         const data = await response.json();
         setUsername(data.username);
+        setUserId(data._id || id);
+      } else if (response.status === 401) {
+        throw new Error("Authentication failed");
       } else {
         throw new Error("Failed to fetch user data");
       }
@@ -88,11 +99,10 @@ function Play() {
       console.error("Authentication error:", error);
       showToast(
         "Authentication Error",
-        "Your login has expired. Please log in again.",
+        "Your session has expired. Please log in again.",
         "destructive"
       );
-      // setTimeout(() => router.push("/"), 3000);
-      console.log("Here");
+      setTimeout(() => router.push("/"), 3000);
     }
   };
 
@@ -110,11 +120,11 @@ function Play() {
         const moveNotation = `${
           result.color === "w" ? "White" : "Black"
         } moved from ${result.from} to ${result.to}`;
-        setMoveHistory((prevMoveHistory) => [
-          moveNotation,
-          ...prevMoveHistory.slice(0, moveIndex),
-        ]);
-        setMoveIndex(0);
+        setMoveHistory((prevMoveHistory) => {
+          const historyCut = prevMoveHistory.slice(0, moveIndex);
+          return [...historyCut, moveNotation];
+        });
+        setMoveIndex((prevIndex) => prevIndex + 1);
       }
       return result;
     },
@@ -174,19 +184,34 @@ function Play() {
   };
 
   const handleGameExit = () => {
-    router.push("/home");
+    router.push(`/home?id=${userId}`);
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem("jwtToken");
+    router.push("/");
   };
 
   const handlePrevMove = () => {
-    if (mode !== "easy" || moveIndex >= moveHistory.length - 1) return;
-    setMoveIndex((prevIndex) => prevIndex + 1);
-    setGame(new Chess(game.undo()));
+    if (moveIndex > 0) {
+      setMoveIndex((prevIndex) => prevIndex - 1);
+      const newGame = new Chess();
+      moveHistory.slice(0, moveIndex - 1).forEach((move) => {
+        newGame.move(move.split(" ").pop());
+      });
+      setGame(newGame);
+    }
   };
 
   const handleNextMove = () => {
-    if (mode !== "easy" || moveIndex <= 0) return;
-    setMoveIndex((prevIndex) => prevIndex - 1);
-    setGame(new Chess(game.redo()));
+    if (moveIndex < moveHistory.length - 1) {
+      setMoveIndex((prevIndex) => prevIndex + 1);
+      const newGame = new Chess();
+      moveHistory.slice(0, moveIndex + 1).forEach((move) => {
+        newGame.move(move.split(" ").pop());
+      });
+      setGame(newGame);
+    }
   };
 
   const getAIMove = useCallback(async () => {
@@ -208,6 +233,7 @@ function Play() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
         },
         body: JSON.stringify({ prompt }),
       });
@@ -268,7 +294,7 @@ function Play() {
         <div className="text-2xl font-bold text-gray-800 dark:text-white">
           Castle.ai
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-center">
           <div className="flex space-x-2">
             <div
               className={`px-3 py-1 rounded ${
@@ -289,6 +315,8 @@ function Play() {
               Black {userColor === "black" ? "(You)" : "(AI)"}
             </div>
           </div>
+        </div>
+        <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -306,10 +334,12 @@ function Play() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => router.push("/home")}>
+              <DropdownMenuItem
+                onSelect={() => router.push(`/home?id=${userId}`)}
+              >
                 Home
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => router.push("/")}>
+              <DropdownMenuItem onSelect={handleSignOut}>
                 Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -421,19 +451,25 @@ function Play() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Moves</h3>
-              <ScrollArea className="h-64 w-full rounded-md border p-4">
-                {moveHistory.map((move, index) => (
-                  <div
-                    key={index}
-                    className={`py-1 ${
-                      index === moveIndex ? "bg-blue-100 dark:bg-blue-900" : ""
-                    }`}
-                  >
-                    {moveHistory.length - index}. {move}
+              <div className="flex flex-col h-full">
+                <h3 className="text-lg font-semibold mb-2">Moves</h3>
+                <ScrollArea className="flex-grow rounded-md border">
+                  <div className="p-4 flex flex-col-reverse">
+                    {moveHistory.map((move, index) => (
+                      <div
+                        key={index}
+                        className={`py-1 ${
+                          index === moveIndex - 1
+                            ? "bg-blue-100 dark:bg-blue-900"
+                            : ""
+                        }`}
+                      >
+                        {move}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </ScrollArea>
+                </ScrollArea>
+              </div>
             </div>
           </div>
         </div>

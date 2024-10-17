@@ -4,10 +4,8 @@ import clientPromise from "../../../../lib/mongodb";
 
 export async function POST(req) {
   try {
-    const { email, password } = await req.json(); // GTG
+    const { email, password } = await req.json();
     const client = await clientPromise;
-
-    console.log("MongoDB Client:", client);
     const db = client.db(process.env.MONGO_DB);
 
     if (!db) {

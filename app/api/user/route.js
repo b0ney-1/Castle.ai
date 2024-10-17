@@ -1,53 +1,49 @@
 import { ObjectId } from "mongodb";
 import clientPromise from "../../../lib/mongodb";
+import { authenticateToken } from "../../../lib/auth";
+import { NextResponse } from "next/server";
 
-export async function GET(request) {
-  const { searchParams } = new URL(request.url);
-  const _id = searchParams.get("_id");
+async function handler(req) {
+  console.log("User API route called");
+  const { searchParams } = new URL(req.url);
+  const _id = searchParams.get("id");
 
-  console.log("Received _id:", _id);
+  console.log("Received ID:", _id);
 
   if (!_id) {
-    console.log("Missing _id parameter");
-    return new Response(JSON.stringify({ message: "Missing _id parameter" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log("Missing ID parameter");
+    return NextResponse.json(
+      { message: "Missing id parameter" },
+      { status: 400 }
+    );
   }
 
   try {
     const client = await clientPromise;
     const db = client.db(process.env.MONGO_DB);
 
-    console.log("Attempting to find user with _id:", _id);
+    console.log("Attempting to find user with ID:", _id);
     const user = await db
       .collection("users")
       .findOne({ _id: new ObjectId(_id) });
 
     if (!user) {
       console.log("User not found");
-      return new Response(JSON.stringify({ message: "User not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     console.log("User found:", user.email);
-    return new Response(JSON.stringify({ username: user.email }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ username: user.email, _id: user._id });
   } catch (error) {
     console.error("Error in API route:", error);
-    return new Response(
-      JSON.stringify({
+    return NextResponse.json(
+      {
         message: "Internal Server Error",
         error: error.message,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      },
+      { status: 500 }
     );
   }
 }
+
+export const GET = authenticateToken(handler);
