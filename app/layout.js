@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AnimatePresence } from "framer-motion";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -30,7 +31,9 @@ export default function RootLayout({ children }) {
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <AnimatePresence mode="wait" initial={false}>
+              {children}
+            </AnimatePresence>
           </ThemeProvider>
           <div
             style={{

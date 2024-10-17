@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
+import { motion } from "framer-motion";
 
-function Home() {
+function Dashboard() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const { theme, setTheme } = useTheme();
@@ -41,10 +43,21 @@ function Home() {
     }
   }, [searchParams]);
 
+  const handleSignOut = () => {
+    localStorage.removeItem("jwtToken");
+    router.push("/");
+  };
+
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+    >
       <nav className="py-4 px-6 flex justify-between items-center">
         <div className="text-2xl font-bold text-gray-800 dark:text-white">
           Castle.ai
@@ -67,8 +80,8 @@ function Home() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Link href="/">Sign out</Link>
+              <DropdownMenuItem onSelect={handleSignOut}>
+                Sign out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -84,7 +97,7 @@ function Home() {
               { href: "/puzzle", src: "/puzzle.gif", title: "Puzzles" },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
-                <div className="bg-white dark:bg-black rounded-lg p-8 w-80 h-96 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
+                <div className="bg-white dark:bg-black rounded-lg p-8 w-80 h-96 shadow-lg hover:shadow-2xl active:bg-slate-100 dark:hover:shadow-2xl dark:active:bg-slate-900 transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
                   <div className="flex justify-center mb-6">
                     <Image
                       src={item.src}
@@ -103,8 +116,8 @@ function Home() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-export default Home;
+export default Dashboard;

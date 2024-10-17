@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -7,6 +7,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Home() {
   const [view, setView] = useState("initial");
@@ -20,6 +21,10 @@ export default function Home() {
     variant: "default",
   });
   const router = useRouter();
+
+  useEffect(() => {
+    localStorage.removeItem("jwtToken");
+  }, []);
 
   const handleViewChange = (newView) => {
     setView(newView);
@@ -39,6 +44,8 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok) {
+        localStorage.setItem("jwtToken", data.token);
+
         setAlertInfo({
           show: true,
           title: "Success",
@@ -69,8 +76,15 @@ export default function Home() {
     switch (view) {
       case "initial":
         return (
-          <div className="flex flex-col items-center space-y-12">
-            <h1 className="text-6xl font-bold">Welcome to Castle.ai</h1>
+          <motion.div
+            key="initial"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center space-y-12"
+          >
+            <h1 className="text-5xl font-bold">Welcome to Castle.ai</h1>
             <p className="text-2xl">Your move, powered by AI</p>
             <div className="flex space-x-12">
               <Button
@@ -88,12 +102,19 @@ export default function Home() {
                 Register
               </Button>
             </div>
-          </div>
+          </motion.div>
         );
       case "login":
       case "register":
         return (
-          <div className="flex flex-col items-center space-y-6">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center space-y-6 w-full"
+          >
             <Button
               variant="ghost"
               className="self-start"
@@ -135,7 +156,7 @@ export default function Home() {
                   : "Register"}
               </Button>
             </form>
-          </div>
+          </motion.div>
         );
       default:
         return null;
@@ -144,31 +165,35 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col md:flex-row items-center justify-center space-y-12 md:space-y-0 md:space-x-12">
-        <Image
-          src="/main.gif"
-          alt="Logo"
-          width={600}
-          height={600}
-          className="object-contain"
-        />
-        <div className="w-full max-w-2xl">
-          {renderContent()}
-          {alertInfo.show && (
-            <Alert
-              variant={alertInfo.variant}
-              className="fixed top-6 right-6 w-96 p-4 shadow-lg"
-            >
-              <div className="flex items-center space-x-3">
-                <ErrorOutlineIcon className="h-7 w-7 flex-shrink-0" />
-                <AlertDescription className="text-lg">
-                  {alertInfo.message}
-                </AlertDescription>
-              </div>
-            </Alert>
-          )}
+      <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
+        <div className="w-1/2 flex justify-center">
+          <Image
+            src="/main.gif"
+            alt="Logo"
+            width={600}
+            height={600}
+            className="object-contain"
+          />
+        </div>
+        <div className="w-1/2 h-[600px] flex items-center justify-center">
+          <AnimatePresence mode="wait" initial={false}>
+            {renderContent()}
+          </AnimatePresence>
         </div>
       </div>
+      {alertInfo.show && (
+        <Alert
+          variant={alertInfo.variant}
+          className="fixed top-6 right-6 w-96 p-4 shadow-lg"
+        >
+          <div className="flex items-center space-x-3">
+            <ErrorOutlineIcon className="h-7 w-7 flex-shrink-0" />
+            <AlertDescription className="text-lg">
+              {alertInfo.message}
+            </AlertDescription>
+          </div>
+        </Alert>
+      )}
     </div>
   );
 }
