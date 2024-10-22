@@ -53,7 +53,10 @@ function Play() {
   const [showResignDialog, setShowResignDialog] = useState(false);
   const [showCheckmateDialog, setShowCheckmateDialog] = useState(false);
   const [opponent, setOpponent] = useState("Castle.ai");
-  const [invalidMoves, setInvalidMoves] = useState([]);
+  const [isLoadingGame, setIsLoadingGame] = useState(true);
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const [quickSave, setQuickSave] = useState(null);
+  const [movesSinceQuickSave, setMovesSinceQuickSave] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -70,6 +73,7 @@ function Play() {
       }
     }
 
+    // fix this later
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = "";
@@ -86,7 +90,136 @@ function Play() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [searchParams, router]);
+  }, [searchParams, router, gameStarted]);
+
+  const saveGameState = async () => {
+    try {
+      const pgn = game.pgn();
+
+      const response = await fetch("/api/game-state/game", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({
+          userId: userId,
+          gameState: {
+            pgn: pgn,
+            fen: game.fen(),
+            userColor: userColor,
+            opponent: opponent,
+            mode: mode,
+            moveHistory: moveHistory,
+            gameStarted: gameStarted,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save game state");
+      }
+
+      showToast("💾");
+    } catch (error) {
+      console.error("Error saving game:", error);
+      showToast("Error", "Failed to save game state", "destructive");
+    }
+  };
+
+  const resetGameState = async () => {
+    console.log("Reset clicked - 2 ");
+    try {
+      const newGame = new Chess();
+      const pgn = newGame.pgn();
+
+      const response = await fetch("/api/game-state/game", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({
+          userId: userId,
+          gameState: {
+            pgn: pgn,
+            fen: newGame.fen(),
+            userColor: userColor,
+            opponent: opponent,
+            mode: mode,
+            moveHistory: [],
+            gameStarted: false,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to reset game state");
+      }
+
+      showToast("🔃");
+    } catch (error) {
+      console.error("Error resetting game:", error);
+      showToast("Error", "Failed to reset game state", "destructive");
+    }
+  };
+
+  const loadSavedGame = async () => {
+    try {
+      const response = await fetch(`/api/game-state/game?id=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to load saved game");
+      }
+
+      const data = await response.json();
+
+      if (data.savedGameState) {
+        const newGame = new Chess();
+        if (data.savedGameState.pgn) {
+          try {
+            newGame.loadPgn(data.savedGameState.pgn);
+          } catch (error) {
+            console.error("PGN load failed, falling back to FEN:", error);
+            newGame.load(data.savedGameState.fen);
+          }
+        } else {
+          newGame.load(data.savedGameState.fen);
+        }
+
+        setGame(newGame);
+        setUserColor(data.savedGameState.userColor);
+        setOpponent(data.savedGameState.opponent);
+        setMode(data.savedGameState.mode);
+        setMoveHistory(data.savedGameState.moveHistory);
+        setGameStarted(data.savedGameState.gameStarted);
+        setMoveIndex(data.savedGameState.moveHistory.length);
+
+        showToast("🛜");
+        if (
+          newGame.turn() !== data.savedGameState.userColor[0] &&
+          data.savedGameState.gameStarted
+        ) {
+          setTimeout(handleAIMove, 300);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading saved game:", error);
+      showToast("Error", "Failed to load saved game", "destructive");
+    } finally {
+      setIsLoadingGame(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userId && isLoadingGame) {
+      loadSavedGame();
+    }
+  }, [userId]);
 
   const fetchUserData = async (id, token) => {
     try {
@@ -123,7 +256,7 @@ function Play() {
   };
 
   const makeAMove = useCallback(
-    (move) => {
+    async (move) => {
       const gameCopy = new Chess(game.fen());
       let result = null;
       try {
@@ -137,16 +270,22 @@ function Play() {
         const moveNotation = `${
           result.color === "w" ? "White" : "Black"
         } moved from ${result.from} to ${result.to}`;
+
         setMoveHistory((prevMoveHistory) => {
-          const historyCut = prevMoveHistory.slice(0, moveIndex);
-          return [...historyCut, moveNotation];
+          if (moveIndex < prevMoveHistory.length) {
+            return [...prevMoveHistory.slice(0, moveIndex), moveNotation];
+          }
+          return [...prevMoveHistory, moveNotation];
         });
+
         setMoveIndex((prevIndex) => prevIndex + 1);
+
+        await saveGameState();
 
         if (gameCopy.isCheckmate()) {
           setShowCheckmateDialog(true);
         } else if (gameCopy.isCheck()) {
-          showToast("Check", "Your king is under Threat", "destructive");
+          console.log("Check!");
         }
       }
       return result;
@@ -155,8 +294,7 @@ function Play() {
   );
 
   const onDrop = useCallback(
-    (sourceSquare, targetSquare) => {
-      console.log("onDrop()");
+    async (sourceSquare, targetSquare) => {
       if (!gameStarted) {
         showToast(
           "Game not started",
@@ -173,11 +311,12 @@ function Play() {
         );
         return false;
       }
-      const move = makeAMove({
+      const move = await makeAMove({
         from: sourceSquare,
         to: targetSquare,
         promotion: "q",
       });
+      console.log(move);
       if (move === null) {
         showToast(
           "Invalid move",
@@ -187,6 +326,7 @@ function Play() {
         return false;
       }
       setTimeout(handleAIMove, 300);
+      setMovesSinceQuickSave((prevMoves) => prevMoves + 1);
       return true;
     },
     [gameStarted, game, userColor, makeAMove]
@@ -196,18 +336,23 @@ function Play() {
     setMode(newMode);
   };
 
-  const handleGameStart = () => {
+  const handleGameStart = async () => {
     const newGame = new Chess();
     setGameStarted(true);
     setGame(newGame);
     setMoveHistory([]);
     setMoveIndex(0);
+    await saveGameState();
+
     if (userColor === "black") {
       setTimeout(handleAIMove, 300);
     }
   };
 
-  const handleGameExit = () => {
+  const handleGameExit = async () => {
+    if (gameStarted) {
+      await resetGameState();
+    }
     router.push(`/home?id=${userId}`);
   };
 
@@ -216,27 +361,38 @@ function Play() {
     router.push("/");
   };
 
-  const handlePrevMove = () => {
-    if (moveIndex > 1) {
-      setMoveIndex((prevIndex) => prevIndex - 2);
-      const newGame = new Chess();
-      moveHistory.slice(0, moveIndex - 2).forEach((move) => {
-        const [, from, to] = move.match(/from (\w+) to (\w+)/);
-        newGame.move({ from, to, promotion: "q" });
-      });
-      setGame(newGame);
+  const handleExitClick = async () => {
+    if (gameStarted) {
+      await saveGameState();
     }
+    router.push(`/home?id=${userId}`);
   };
 
-  const handleNextMove = () => {
-    if (moveIndex < moveHistory.length - 1) {
-      setMoveIndex((prevIndex) => prevIndex + 2);
-      const newGame = new Chess();
-      moveHistory.slice(0, moveIndex + 2).forEach((move) => {
-        const [, from, to] = move.match(/from (\w+) to (\w+)/);
-        newGame.move({ from, to, promotion: "q" });
-      });
+  const handleResignClick = async () => {
+    console.log("Resign clicked");
+    if (gameStarted) {
+      await resetGameState();
+    }
+    router.push(`/home?id=${userId}`);
+  };
+
+  const handleQuickSave = () => {
+    setQuickSave(game);
+    setMovesSinceQuickSave(1);
+  };
+
+  const handleQuickLoad = () => {
+    if (quickSave) {
+      const newGame = new Chess(quickSave.fen());
       setGame(newGame);
+      console.log(movesSinceQuickSave);
+      const newMoveHistory = moveHistory.slice(
+        0,
+        moveHistory.length - 2 * movesSinceQuickSave
+      );
+      setMoveHistory(newMoveHistory);
+      setMovesSinceQuickSave(0);
+      console.log(moveHistory);
     }
   };
 
@@ -341,7 +497,7 @@ Return ONLY the move in standard algebraic notation, without any additional text
     }
   }, [gameStarted, game, userColor, handleAIMove]);
 
-  if (!mounted) return null;
+  if (!mounted || isLoadingGame) return null;
 
   return (
     <motion.div
@@ -433,7 +589,8 @@ Return ONLY the move in standard algebraic notation, without any additional text
               boardOrientation={userColor}
             />
           </div>
-          <div className="w-120 space-y-6">
+          <div className="w-120 space-y-5">
+            <h3 className="text-lg font-semibold mb-">Game Controls</h3>
             <div className="mb-4 flex space-x-4 items-center">
               <Toggle
                 className="border-2 border-white"
@@ -460,10 +617,16 @@ Return ONLY the move in standard algebraic notation, without any additional text
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Castle.ai">Castle.ai</SelectItem>
-                  <SelectItem value="Magnus Carlsen">Magnus Carlsen</SelectItem>
-                  <SelectItem value="Garry Kasparov">Garry Kasparov</SelectItem>
-                  <SelectItem value="Bobby Fischer">Bobby Fischer</SelectItem>
-                  <SelectItem value="Samay Raina">Samay Raina</SelectItem>
+                  <SelectItem value="Magnus Carlsen">
+                    Magnus Carlsen.ai
+                  </SelectItem>
+                  <SelectItem value="Garry Kasparov">
+                    Garry Kasparov.ai
+                  </SelectItem>
+                  <SelectItem value="Bobby Fischer">
+                    Bobby Fischer.ai
+                  </SelectItem>
+                  <SelectItem value="Samay Raina">Samay Raina.ai</SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleGameStart} disabled={gameStarted}>
@@ -498,6 +661,7 @@ Return ONLY the move in standard algebraic notation, without any additional text
 
             <div>
               <h3 className="text-lg font-semibold mb-2">Match Controls</h3>
+
               <div className="space-x-2">
                 <AlertDialog
                   open={showResignDialog}
@@ -522,24 +686,45 @@ Return ONLY the move in standard algebraic notation, without any additional text
                       >
                         Cancel
                       </AlertDialogCancel>
-                      <AlertDialogAction onClick={handleGameExit}>
+                      <AlertDialogAction onClick={handleResignClick}>
                         Confirm
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <Button onClick={handlePrevMove} disabled={moveIndex <= 1}>
-                  Previous Move
+                <Button onClick={handleQuickSave} disabled={moveIndex <= 1}>
+                  Quick Save
                 </Button>
-                <Button
-                  onClick={handleNextMove}
-                  disabled={moveIndex >= moveHistory.length - 1}
+                <Button onClick={handleQuickLoad} disabled={quickSave === null}>
+                  Quick Load
+                </Button>
+                <AlertDialog
+                  open={showExitDialog}
+                  onOpenChange={setShowExitDialog}
                 >
-                  Next Move
-                </Button>
-                <Button onClick={() => console.log("Exit button clicked")}>
-                  Exit
-                </Button>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="secondary">Exit</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Exit Game</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Your game progress will be saved automatically. You can
+                        continue this game later from the home page.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        onClick={() => setShowExitDialog(false)}
+                      >
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction onClick={handleExitClick}>
+                        Exit to Home
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
             <div className="flex flex-col ">
