@@ -35,16 +35,7 @@ export default function RootLayout({ children }) {
               {children}
             </AnimatePresence>
           </ThemeProvider>
-          <div
-            style={{
-              position: "fixed",
-              bottom: 0,
-              left: "50%",
-              transform: "translateX(-50%)",
-              textAlign: "center",
-              padding: "5px",
-            }}
-          >
+          <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 text-center p-2 text-black dark:text-white">
             Powered by 🔮Metaschool
           </div>
         </main>

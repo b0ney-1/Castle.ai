@@ -1,8 +1,20 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Moon, Sun } from "lucide-react";
+import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -12,34 +24,91 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const openingsPerPage = 10;
 
 export default function Learn() {
   const [openings, setOpenings] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [game, setGame] = useState(new Chess());
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [toast, setToast] = useState(null);
   const [selection, setSelection] = useState({
     name: "Select an Opening to learn",
     fen: "start",
   });
+  const [username, setUsername] = useState("");
+  const [userId, setUserId] = useState("");
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  const fetchOpenings = useCallback(async (currentPage) => {
+    try {
+      const res = await fetch(
+        `/api/openings?page=${currentPage + 1}&limit=${openingsPerPage}`
+      );
+      const data = await res.json();
+      setOpenings(data.openings);
+      setTotalPages(100);
+    } catch (error) {
+      console.error("Error fetching openings:", error);
+      setTotalPages(1);
+    }
+  }, []);
 
   useEffect(() => {
-    fetch(`/api/openings?page=${page + 1}&limit=${openingsPerPage}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setOpenings(data.openings);
-        setTotalPages(Math.ceil(data.total / openingsPerPage));
-      })
-      .catch((error) => console.error("Error fetching openings:", error));
-  }, [page]);
+    setMounted(true);
+    const id = searchParams.get("id");
+    if (id) {
+      setUserId(id);
+      fetchUserData(id);
+    }
 
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
+    const currentPage = parseInt(searchParams.get("page") || "0", 10);
+    setPage(currentPage);
+    fetchOpenings(currentPage);
+  }, [searchParams, fetchOpenings]);
+
+  const fetchUserData = async (id) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const response = await fetch(`/api/user?id=${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUsername(data.username);
+      } else {
+        throw new Error("Failed to fetch user data");
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      router.push("/");
+    }
   };
+
+  const handlePageChange = useCallback(
+    (newPage) => {
+      setPage(newPage);
+      router.push(`/learn?id=${userId}&page=${newPage}`);
+      fetchOpenings(newPage);
+    },
+    [userId, router, fetchOpenings]
+  );
 
   const handleGameChange = (newGame) => {
     setGame(new Chess(newGame.fen()));
@@ -48,102 +117,155 @@ export default function Learn() {
   const handleOpeningClick = (opening) => {
     const encodedName = encodeURIComponent(opening.name);
     const encodedFen = encodeURIComponent(opening.fen);
-    router.push(`/learn/${encodedName}/${encodedFen}`);
+    router.push(`/learn/${encodedName}/${encodedFen}?id=${userId}`);
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem("jwtToken");
+    router.push("/");
+  };
+
+  const showToast = (title, description, variant = "default") => {
+    setToast({ title, description, variant });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  if (!mounted) return null;
+
   return (
-    <div className="flex flex-row md:flex-row w-full h-full max-w-7xl mx-auto p-4 gap-8">
-      <div className="w-full md:w-1/2 flex items-center justify-center align-items-center h-full mx-auto">
-        <div className="m-auto flex items-center justify-center">
-          <Chessboard
-            id="BasicBoard"
-            boardWidth={650}
-            className="w-full max-w-[700px]"
-            position={game.fen()}
-            onMove={() => handleGameChange(game)}
-          />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+    >
+      <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
+        <div className="text-2xl font-bold text-gray-800 dark:text-white">
+          Castle.ai
         </div>
-      </div>
-      <div className="w-full md:w-1/2 flex flex-col">
-        <div className="flex items-center justify-center">
-          <button
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-md shadow hover:bg-primary/90"
-            onClick={() => handleOpeningClick(selection)}
+        <div className="flex items-center space-x-4">
+          <Button
+            variant="ghost"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
-            Start : {selection.name}
-          </button>
-        </div>
-        <ul className="grid grid-cols-2 gap-4 mb-4">
-          {openings.map((opening) => (
-            <li
-              key={opening.id}
-              className="bg-white shadow rounded-lg p-4 transition-transform transform-gpu hover:scale-105 hover:shadow-lg cursor-pointer"
-            >
-              <h3
-                className="text-md font-semibold mb-2"
-                onClick={() => {
-                  try {
-                    console.log(opening.fen);
-                    const newGame = new Chess(opening.fen);
-                    handleGameChange(newGame);
-                    setSelection({
-                      name: opening.name,
-                      fen: opening.fen,
-                    });
-                    console.log(newGame.fen());
-                  } catch (error) {
-                    console.error(error);
-                  }
-                }}
+            {theme === "light" ? (
+              <Moon className="h-5 w-5" />
+            ) : (
+              <Sun className="h-5 w-5" />
+            )}
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-lg font-semibold">
+                {username}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onSelect={() => router.push(`/home?id=${userId}`)}
               >
-                {opening.name}
-              </h3>
-              {/* <p className="text-sm text-gray-600 transition-colors duration-300 hover:text-primary cursor-pointer">
-                {opening.moves}
-              </p> */}
-            </li>
-          ))}
-        </ul>
-        <Pagination className="mt-auto">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                as={Link}
-                key={page}
-                href={`/learn?page=${Math.max(0, page - 1)}`}
-                onClick={() => handlePageChange(Math.max(0, page - 1))}
-                className={page === 0 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            {totalPages > 0 &&
-              [...Array(totalPages)].map((_, index) => (
-                <PaginationItem key={index}>
-                  <PaginationLink
-                    as={Link}
-                    href={`/learn?page=${index}`}
-                    onClick={() => handlePageChange(index)}
-                    isActive={page === index}
-                  >
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
+                Home
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={handleSignOut}>
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </nav>
+
+      <div className="flex-grow flex items-center justify-center p-6">
+        <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto gap-8">
+          <div className="w-full md:w-1/2 flex items-center justify-center">
+            <Chessboard
+              id="BasicBoard"
+              boardWidth={550}
+              position={game.fen()}
+              onMove={() => handleGameChange(game)}
+            />
+          </div>
+          <div className="w-full md:w-1/2 flex flex-col">
+            <div className="flex items-center justify-center mb-4">
+              <Button
+                className="w-full max-w-md"
+                onClick={() => handleOpeningClick(selection)}
+              >
+                Learn {selection.name}
+              </Button>
+            </div>
+            <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
+              {openings.map((opening) => (
+                <div
+                  key={opening.id}
+                  className="bg-white dark:bg-black shadow rounded-lg p-4 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
+                  onClick={() => {
+                    try {
+                      const newGame = new Chess(opening.fen);
+                      handleGameChange(newGame);
+                      setSelection({
+                        name: opening.name,
+                        fen: opening.fen,
+                      });
+                    } catch (error) {
+                      console.error(error);
+                    }
+                  }}
+                >
+                  <h3 className="text-md font-semibold mb-2 dark:text-white">
+                    {opening.name}
+                  </h3>
+                </div>
               ))}
-            {totalPages > 3 && <PaginationEllipsis />}
-            <PaginationItem>
-              <PaginationNext
-                as={Link}
-                href={`/learn?page=${page + 1}`}
-                onClick={() => handlePageChange(page + 1)}
-                className={
-                  page === totalPages - 1
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+            </div>
+            <Pagination className="mt-auto">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => handlePageChange(Math.max(0, page - 1))}
+                    className={
+                      page === 0 ? "pointer-events-none opacity-50" : ""
+                    }
+                  />
+                </PaginationItem>
+                {totalPages > 0 &&
+                  [...Array(Math.min(5, totalPages))].map((_, index) => {
+                    let pageNumber = index;
+                    if (page > 2 && totalPages > 5) {
+                      pageNumber = page - 2 + index;
+                    }
+                    if (pageNumber < totalPages) {
+                      return (
+                        <PaginationItem key={pageNumber}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(pageNumber)}
+                            isActive={page === pageNumber}
+                          >
+                            {pageNumber + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
+                    return null;
+                  })}
+                {totalPages > 5 && <PaginationEllipsis />}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      handlePageChange(Math.min(totalPages - 1, page + 1))
+                    }
+                    className={
+                      page === totalPages - 1
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -27,6 +27,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Toggle } from "@/components/ui/toggle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function Play() {
   const router = useRouter();
@@ -43,6 +51,9 @@ function Play() {
   const [userColor, setUserColor] = useState("white");
   const [toast, setToast] = useState(null);
   const [showResignDialog, setShowResignDialog] = useState(false);
+  const [showCheckmateDialog, setShowCheckmateDialog] = useState(false);
+  const [opponent, setOpponent] = useState("Castle.ai");
+  const [invalidMoves, setInvalidMoves] = useState([]);
 
   useEffect(() => {
     setMounted(true);
@@ -114,7 +125,13 @@ function Play() {
   const makeAMove = useCallback(
     (move) => {
       const gameCopy = new Chess(game.fen());
-      const result = gameCopy.move(move);
+      let result = null;
+      try {
+        result = gameCopy.move(move);
+      } catch (error) {
+        console.log("Result:", result);
+      }
+
       if (result) {
         setGame(gameCopy);
         const moveNotation = `${
@@ -125,6 +142,12 @@ function Play() {
           return [...historyCut, moveNotation];
         });
         setMoveIndex((prevIndex) => prevIndex + 1);
+
+        if (gameCopy.isCheckmate()) {
+          setShowCheckmateDialog(true);
+        } else if (gameCopy.isCheck()) {
+          showToast("Check", "Your king is under Threat", "destructive");
+        }
       }
       return result;
     },
@@ -133,6 +156,7 @@ function Play() {
 
   const onDrop = useCallback(
     (sourceSquare, targetSquare) => {
+      console.log("onDrop()");
       if (!gameStarted) {
         showToast(
           "Game not started",
@@ -193,11 +217,12 @@ function Play() {
   };
 
   const handlePrevMove = () => {
-    if (moveIndex > 0) {
-      setMoveIndex((prevIndex) => prevIndex - 1);
+    if (moveIndex > 1) {
+      setMoveIndex((prevIndex) => prevIndex - 2);
       const newGame = new Chess();
-      moveHistory.slice(0, moveIndex - 1).forEach((move) => {
-        newGame.move(move.split(" ").pop());
+      moveHistory.slice(0, moveIndex - 2).forEach((move) => {
+        const [, from, to] = move.match(/from (\w+) to (\w+)/);
+        newGame.move({ from, to, promotion: "q" });
       });
       setGame(newGame);
     }
@@ -205,29 +230,55 @@ function Play() {
 
   const handleNextMove = () => {
     if (moveIndex < moveHistory.length - 1) {
-      setMoveIndex((prevIndex) => prevIndex + 1);
+      setMoveIndex((prevIndex) => prevIndex + 2);
       const newGame = new Chess();
-      moveHistory.slice(0, moveIndex + 1).forEach((move) => {
-        newGame.move(move.split(" ").pop());
+      moveHistory.slice(0, moveIndex + 2).forEach((move) => {
+        const [, from, to] = move.match(/from (\w+) to (\w+)/);
+        newGame.move({ from, to, promotion: "q" });
       });
       setGame(newGame);
     }
   };
 
   const getAIMove = useCallback(async () => {
+    console.log("getAIMove()");
     const aiColor = userColor === "white" ? "b" : "w";
     if (game.turn() !== aiColor) return;
 
     try {
-      const prompt = `You are a chess AI assistant. The current game state in FEN notation is: ${game.fen()}. The difficulty level is set to ${mode}. Please provide the next best move for ${
-        aiColor === "w" ? "white" : "black"
-      } in standard algebraic notation (e.g., "e4", "Nf3"). For ${mode} difficulty, ${
-        mode === "easy"
-          ? "make a random legal move"
-          : mode === "medium"
-          ? "make a moderately strong move"
-          : "make the best move possible"
-      }.`;
+      const possibleMoves = game.moves();
+      console.log("Possible moves:", possibleMoves);
+
+      let prompt = `You are a chess AI assistant. The current game state in FEN notation is: ${game.fen()}. 
+The available legal moves in this position are: ${possibleMoves.join(", ")}. `;
+
+      if (opponent === "Castle.ai") {
+        prompt += `The difficulty level is set to ${mode}. Please provide the next best move for ${
+          aiColor === "w" ? "white" : "black"
+        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"). For ${mode} difficulty, ${
+          mode === "easy"
+            ? "choose any legal move from the list, favoring less optimal moves"
+            : mode === "medium"
+            ? "choose a moderately strong move from the list"
+            : "choose the strongest move from the list"
+        }. Return ONLY the move in standard algebraic notation, without any additional text.`;
+      } else {
+        prompt += `You are playing as ${opponent}. Please provide the next best move for ${
+          aiColor === "w" ? "white" : "black"
+        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"), mimicking ${opponent}'s playing style and typical strategies. 
+${
+  opponent === "Magnus Carlsen"
+    ? "Choose moves that demonstrate positional understanding and technical precision."
+    : opponent === "Garry Kasparov"
+    ? "Prefer aggressive and tactical moves that create attacking opportunities."
+    : opponent === "Bobby Fischer"
+    ? "Focus on clear, principled moves with a mix of tactical brilliance."
+    : opponent === "Samay Raina"
+    ? "Choose entertaining moves that maintain a balance between fun and competitive play."
+    : ""
+}
+Return ONLY the move in standard algebraic notation, without any additional text.`;
+      }
 
       const res = await fetch("/api/openai", {
         method: "POST",
@@ -244,24 +295,45 @@ function Play() {
 
       const data = await res.json();
       const aiMove = data.response.trim();
-      const possibleMoves = game.moves();
+
       if (possibleMoves.includes(aiMove)) {
+        console.log("Selected AI move:", aiMove);
         makeAMove(aiMove);
       } else {
-        console.error("Invalid AI move:", aiMove);
-        const randomMove =
+        console.error("Invalid AI move received:", aiMove);
+        // If somehow we still get an invalid move, fall back to a semi-random move from possible moves
+        const fallbackMove =
           possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        makeAMove(randomMove);
+        console.log("Falling back to:", fallbackMove);
+        makeAMove(fallbackMove);
       }
     } catch (error) {
       console.error("Error getting AI move:", error);
+      // In case of error, make a move from possible moves to avoid game stuck
+      const possibleMoves = game.moves();
+      const fallbackMove =
+        possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+      console.log("Error fallback move:", fallbackMove);
+      makeAMove(fallbackMove);
     }
-  }, [game, makeAMove, mode, userColor]);
+  }, [game, makeAMove, mode, userColor, opponent]);
 
   const handleAIMove = useCallback(() => {
-    if (!gameStarted || game.turn() === userColor[0]) return;
+    console.log("Handle AI move called");
+    if (game.isGameOver()) {
+      if (game.isCheckmate()) {
+        setShowCheckmateDialog(true);
+      } else {
+        showToast(
+          "Game over",
+          "The game is over. Please start a new game.",
+          "destructive"
+        );
+      }
+      return;
+    }
     getAIMove();
-  }, [gameStarted, game, userColor, getAIMove]);
+  }, [game, getAIMove]);
 
   useEffect(() => {
     if (gameStarted && game.turn() !== userColor[0]) {
@@ -281,11 +353,13 @@ function Play() {
     >
       {toast && (
         <div
-          className={`fixed top-4 right-4 p-4 rounded-md shadow-md ${
-            toast.variant === "destructive" ? "bg-red-500" : "bg-blue-500"
-          } text-white z-50`}
+          className={`fixed top-20 right-4 p-4 rounded-md shadow-md bg-white border-2 ${
+            toast.variant === "destructive"
+              ? "border-red-500"
+              : "border-blue-500"
+          } text-black z-50`}
         >
-          <h4 className="font-bold">{toast.title}</h4>
+          <h4 className="font-bold ">{toast.title}</h4>
           <p>{toast.description}</p>
         </div>
       )}
@@ -295,12 +369,13 @@ function Play() {
           Castle.ai
         </div>
         <div className="flex items-center justify-center">
+          <div className="px-3 py-1 ">Turn :</div>
           <div className="flex space-x-2">
             <div
               className={`px-3 py-1 rounded ${
                 game.turn() === "w"
                   ? "bg-white text-black"
-                  : "bg-gray-300 text-gray-600"
+                  : "bg-black text-white"
               }`}
             >
               White {userColor === "white" ? "(You)" : "(AI)"}
@@ -308,8 +383,8 @@ function Play() {
             <div
               className={`px-3 py-1 rounded ${
                 game.turn() === "b"
-                  ? "bg-black text-white"
-                  : "bg-gray-600 text-gray-300"
+                  ? "bg-white text-black"
+                  : "bg-black text-white"
               }`}
             >
               Black {userColor === "black" ? "(You)" : "(AI)"}
@@ -359,21 +434,38 @@ function Play() {
             />
           </div>
           <div className="w-120 space-y-6">
-            <div className="mb-4 flex space-x-4">
-              <RadioGroup
-                defaultValue="white"
-                onValueChange={setUserColor}
-                className="flex space-x-4"
+            <div className="mb-4 flex space-x-4 items-center">
+              <Toggle
+                className="border-2 border-white"
+                pressed={userColor === "black"}
+                onPressedChange={(pressed) =>
+                  setUserColor(pressed ? "black" : "white")
+                }
+                disabled={gameStarted}
               >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="white" id="white" />
-                  <label htmlFor="white">Play as White</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="black" id="black" />
-                  <label htmlFor="black">Play as Black</label>
-                </div>
-              </RadioGroup>
+                Play as {userColor === "white" ? "Black" : "White"}
+              </Toggle>
+              <Select
+                value={opponent}
+                onValueChange={(value) => {
+                  setOpponent(value);
+                  if (value !== "Castle.ai") {
+                    setMode("hard");
+                  }
+                }}
+                disabled={gameStarted}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select opponent" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Castle.ai">Castle.ai</SelectItem>
+                  <SelectItem value="Magnus Carlsen">Magnus Carlsen</SelectItem>
+                  <SelectItem value="Garry Kasparov">Garry Kasparov</SelectItem>
+                  <SelectItem value="Bobby Fischer">Bobby Fischer</SelectItem>
+                  <SelectItem value="Samay Raina">Samay Raina</SelectItem>
+                </SelectContent>
+              </Select>
               <Button onClick={handleGameStart} disabled={gameStarted}>
                 Start Game
               </Button>
@@ -383,7 +475,11 @@ function Play() {
               <RadioGroup
                 defaultValue="easy"
                 onValueChange={handleModeChange}
-                className="flex space-x-4"
+                className={`flex space-x-4 ${
+                  gameStarted || opponent !== "Castle.ai"
+                    ? "pointer-events-none opacity-50"
+                    : ""
+                }`}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="easy" id="easy" />
@@ -403,7 +499,6 @@ function Play() {
             <div>
               <h3 className="text-lg font-semibold mb-2">Match Controls</h3>
               <div className="space-x-2">
-                <Button onClick={handleGameStart}>Reset</Button>
                 <AlertDialog
                   open={showResignDialog}
                   onOpenChange={setShowResignDialog}
@@ -433,47 +528,67 @@ function Play() {
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-                <Button
-                  onClick={handlePrevMove}
-                  disabled={
-                    mode !== "easy" || moveIndex >= moveHistory.length - 1
-                  }
-                >
+                <Button onClick={handlePrevMove} disabled={moveIndex <= 1}>
                   Previous Move
                 </Button>
                 <Button
                   onClick={handleNextMove}
-                  disabled={mode !== "easy" || moveIndex <= 0}
+                  disabled={moveIndex >= moveHistory.length - 1}
                 >
                   Next Move
                 </Button>
+                <Button onClick={() => console.log("Exit button clicked")}>
+                  Exit
+                </Button>
               </div>
             </div>
-
-            <div>
-              <div className="flex flex-col h-full">
-                <h3 className="text-lg font-semibold mb-2">Moves</h3>
-                <ScrollArea className="flex-grow rounded-md border">
-                  <div className="p-4 flex flex-col-reverse">
-                    {moveHistory.map((move, index) => (
-                      <div
-                        key={index}
-                        className={`py-1 ${
-                          index === moveIndex - 1
-                            ? "bg-blue-100 dark:bg-blue-900"
-                            : ""
-                        }`}
-                      >
-                        {move}
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
+            <div className="flex flex-col ">
+              <h3 className="text-lg font-semibold mb-2">Moves</h3>
+              <ScrollArea className="h-96 rounded-md border whitespace-nowrap">
+                <div className="p-4 flex flex-col-reverse">
+                  {moveHistory.map((move, index) => (
+                    <div
+                      key={index}
+                      className={`py-1 ${
+                        index === moveIndex - 1
+                          ? "bg-blue-100 dark:bg-zinc-500 p-4 rounded-md object-cover"
+                          : "p-4 object-cover"
+                      }`}
+                    >
+                      {move}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
           </div>
         </div>
       </div>
+
+      <AlertDialog
+        open={showCheckmateDialog}
+        onOpenChange={setShowCheckmateDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Checkmate!</AlertDialogTitle>
+            <AlertDialogDescription>
+              The game has ended in checkmate. What would you like to do?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowCheckmateDialog(false)}>
+              Close
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleGameStart}>
+              Start New Game
+            </AlertDialogAction>
+            <AlertDialogAction onClick={handleGameExit}>
+              Exit to Home
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 }
