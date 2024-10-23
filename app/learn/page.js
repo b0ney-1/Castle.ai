@@ -141,7 +141,10 @@ export default function Learn() {
       className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
     >
       <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
-        <div className="text-2xl font-bold text-gray-800 dark:text-white">
+        <div
+          className="text-2xl font-bold text-gray-800 dark:text-white cursor-pointer"
+          onClick={() => router.push("/home?id=" + userId)}
+        >
           Castle.ai
         </div>
         <div className="flex items-center space-x-4">
@@ -186,20 +189,13 @@ export default function Learn() {
             />
           </div>
           <div className="w-full md:w-1/2 flex flex-col">
-            <div className="flex items-center justify-center mb-4">
-              <Button
-                className="w-full max-w-md"
-                onClick={() => handleOpeningClick(selection)}
-              >
-                Learn {selection.name}
-              </Button>
-            </div>
             <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
               {openings.map((opening) => (
                 <div
                   key={opening.id}
-                  className="bg-white dark:bg-black shadow rounded-lg p-4 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
-                  onClick={() => {
+                  className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
+                  onClick={() => handleOpeningClick(selection)}
+                  onMouseEnter={() => {
                     try {
                       const newGame = new Chess(opening.fen);
                       handleGameChange(newGame);
@@ -212,8 +208,10 @@ export default function Learn() {
                     }
                   }}
                 >
-                  <h3 className="text-md font-semibold mb-2 dark:text-white">
-                    {opening.name}
+                  <h3 className="text-md font-semibold mb-2 dark:text-white ">
+                    {opening.name.length > 50
+                      ? `${opening.name.slice(0, 47)}...`
+                      : opening.name}
                   </h3>
                 </div>
               ))}

@@ -457,7 +457,6 @@ Return ONLY the move in standard algebraic notation, without any additional text
         makeAMove(aiMove);
       } else {
         console.error("Invalid AI move received:", aiMove);
-        // If somehow we still get an invalid move, fall back to a semi-random move from possible moves
         const fallbackMove =
           possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
         console.log("Falling back to:", fallbackMove);
@@ -465,7 +464,6 @@ Return ONLY the move in standard algebraic notation, without any additional text
       }
     } catch (error) {
       console.error("Error getting AI move:", error);
-      // In case of error, make a move from possible moves to avoid game stuck
       const possibleMoves = game.moves();
       const fallbackMove =
         possibleMoves[Math.floor(Math.random() * possibleMoves.length)];

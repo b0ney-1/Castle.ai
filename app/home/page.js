@@ -88,7 +88,10 @@ function Dashboard() {
       className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
     >
       <nav className="py-4 px-6 flex justify-between items-center">
-        <div className="text-2xl font-bold text-gray-800 dark:text-white">
+        <div
+          className="text-2xl font-bold text-gray-800 dark:text-white cursor-pointer"
+          onClick={() => router.push("#")}
+        >
           Castle.ai
         </div>
         <div className="flex items-center space-x-4">
