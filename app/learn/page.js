@@ -117,7 +117,10 @@ export default function Learn() {
   const handleOpeningClick = (opening) => {
     const encodedName = encodeURIComponent(opening.name);
     const encodedFen = encodeURIComponent(opening.fen);
-    router.push(`/learn/${encodedName}/${encodedFen}?id=${userId}`);
+    const encodedId = encodeURIComponent(opening._id);
+    router.push(
+      `/learn/${encodedName}/${encodedFen}/${encodedId}?id=${userId}`
+    );
   };
 
   const handleSignOut = () => {
@@ -194,15 +197,14 @@ export default function Learn() {
                 <div
                   key={opening.id}
                   className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
-                  onClick={() => handleOpeningClick(selection)}
+                  onClick={() => handleOpeningClick(opening)}
                   onMouseEnter={() => {
                     try {
                       const newGame = new Chess(opening.fen);
                       handleGameChange(newGame);
-                      setSelection({
-                        name: opening.name,
-                        fen: opening.fen,
-                      });
+                      console.log(
+                        "!!!!!!!!!!!!!!!!! OPening content : " + opening._id
+                      );
                     } catch (error) {
                       console.error(error);
                     }
