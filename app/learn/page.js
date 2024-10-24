@@ -55,8 +55,10 @@ export default function Learn() {
   const [userId, setUserId] = useState("");
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isLoadingOpenings, setIsLoadingOpenings] = useState(true);
 
   const fetchOpenings = useCallback(async (currentPage) => {
+    setIsLoadingOpenings(true);
     try {
       const res = await fetch(
         `/api/openings?page=${currentPage + 1}&limit=${openingsPerPage}`
@@ -67,6 +69,8 @@ export default function Learn() {
     } catch (error) {
       console.error("Error fetching openings:", error);
       setTotalPages(1);
+    } finally {
+      setIsLoadingOpenings(false); // Set loading to false when fetch completes
     }
   }, []);
 
@@ -133,6 +137,19 @@ export default function Learn() {
     setToast({ title, description, variant });
     setTimeout(() => setToast(null), 3000);
   };
+
+  const OpeningsGridSkeleton = () => (
+    <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
+      {[...Array(10)].map((_, index) => (
+        <div
+          key={index}
+          className="bg-white dark:bg-black shadow rounded-lg p-2 border-2 border-gray-300 dark:border-gray-700"
+        >
+          <Skeleton className="h-8 w-full" />
+        </div>
+      ))}
+    </div>
+  );
 
   if (!mounted) {
     return (
@@ -240,32 +257,36 @@ export default function Learn() {
             />
           </div>
           <div className="w-full md:w-1/2 flex flex-col">
-            <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
-              {openings.map((opening, index) => (
-                <div
-                  key={`${opening.id}_${index}`}
-                  className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
-                  onClick={() => handleOpeningClick(opening)}
-                  onMouseEnter={() => {
-                    try {
-                      const newGame = new Chess(opening.fen);
-                      handleGameChange(newGame);
-                      console.log(
-                        "!!!!!!!!!!!!!!!!! OPening content : " + opening._id
-                      );
-                    } catch (error) {
-                      console.error(error);
-                    }
-                  }}
-                >
-                  <h3 className="text-md font-semibold mb-2 dark:text-white ">
-                    {opening.name.length > 50
-                      ? `${opening.name.slice(0, 47)}...`
-                      : opening.name}
-                  </h3>
-                </div>
-              ))}
-            </div>
+            {isLoadingOpenings ? (
+              <OpeningsGridSkeleton />
+            ) : (
+              <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
+                {openings.map((opening, index) => (
+                  <div
+                    key={`${opening.id}_${index}`}
+                    className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
+                    onClick={() => handleOpeningClick(opening)}
+                    onMouseEnter={() => {
+                      try {
+                        const newGame = new Chess(opening.fen);
+                        handleGameChange(newGame);
+                        console.log(
+                          "!!!!!!!!!!!!!!!!! OPening content : " + opening._id
+                        );
+                      } catch (error) {
+                        console.error(error);
+                      }
+                    }}
+                  >
+                    <h3 className="text-md font-semibold mb-2 dark:text-white ">
+                      {opening.name.length > 50
+                        ? `${opening.name.slice(0, 47)}...`
+                        : opening.name}
+                    </h3>
+                  </div>
+                ))}
+              </div>
+            )}
             <Pagination className="mt-auto">
               <PaginationContent>
                 <PaginationItem>
