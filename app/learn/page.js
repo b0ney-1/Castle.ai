@@ -193,9 +193,9 @@ export default function Learn() {
           </div>
           <div className="w-full md:w-1/2 flex flex-col">
             <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
-              {openings.map((opening) => (
+              {openings.map((opening, index) => (
                 <div
-                  key={opening.id}
+                  key={`${opening.id}_${index}`}
                   className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
                   onClick={() => handleOpeningClick(opening)}
                   onMouseEnter={() => {
