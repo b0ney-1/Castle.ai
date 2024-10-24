@@ -28,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Toggle } from "@/components/ui/toggle";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -495,7 +496,68 @@ Return ONLY the move in standard algebraic notation, without any additional text
     }
   }, [gameStarted, game, userColor, handleAIMove]);
 
-  if (!mounted || isLoadingGame) return null;
+  if (!mounted || isLoadingGame) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
+        {/* Navigation Bar Skeleton */}
+        <nav className="py-4 px-6 flex justify-between items-center">
+          <div className="text-2xl font-bold">
+            <Skeleton className="h-8 w-24" />
+          </div>
+          <div className="flex items-center justify-center space-x-4">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </nav>
+
+        {/* Main Content Skeleton */}
+        <div className="flex-grow flex flex-col items-center justify-center p-6">
+          <div className="flex space-x-6">
+            {/* Chess Board Skeleton */}
+            <div className="w-[800px]">
+              <Skeleton className="h-[700px] w-[700px]" />
+            </div>
+
+            {/* Controls Panel Skeleton */}
+            <div className="w-120 space-y-5">
+              {/* Game Controls Section */}
+              <Skeleton className="h-6 w-32 mb-4" />
+              <div className="mb-4 flex space-x-4">
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-[180px]" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+
+              {/* Difficulty Section */}
+              <Skeleton className="h-6 w-36 mb-2" />
+              <div className="flex space-x-4">
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+
+              {/* Match Controls Section */}
+              <Skeleton className="h-6 w-32 mb-2" />
+              <div className="flex space-x-2">
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+                <Skeleton className="h-10 w-24" />
+              </div>
+
+              {/* Moves Section */}
+              <Skeleton className="h-6 w-24 mb-2" />
+              <Skeleton className="h-96 w-full rounded-md" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
