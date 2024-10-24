@@ -5,6 +5,7 @@ import { Chess } from "chess.js";
 import { Moon, Sun, RotateCcw, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -371,7 +372,84 @@ export default function PuzzleSolver() {
     router.push("/");
   };
 
-  if (!mounted || !game) return null;
+  const LoadingSkeleton = () => (
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Navigation Bar Skeleton */}
+      <nav className="h-16 px-6 flex justify-between items-center border-b">
+        <Skeleton className="h-8 w-24" /> {/* Logo */}
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-9 rounded-full" /> {/* Theme toggle */}
+          <Skeleton className="h-9 w-24" /> {/* Username */}
+        </div>
+      </nav>
+
+      {/* Main Content Skeleton */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex gap-8 items-start max-w-[1200px] w-full">
+          {/* Left Column - Chessboard Skeleton */}
+          <div className="flex-1 flex flex-col items-center">
+            {/* Puzzle Title */}
+            <Skeleton className="h-8 w-48 mb-6" />
+
+            {/* Turn Indicators */}
+            <div className="flex space-x-2 mb-4">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+
+            {/* Chessboard */}
+            <Skeleton className="w-[600px] h-[600px] mb-6" />
+
+            {/* Control Buttons */}
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+
+          {/* Right Column - Chat Panel Skeleton */}
+          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+            {/* Header */}
+            <div className="px-4 py-3 border-b">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 p-4">
+              <div className="flex flex-col space-y-4">
+                {[...Array(4)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      index % 2 === 0 ? "justify-start" : "justify-end"
+                    }`}
+                  >
+                    <Skeleton
+                      className={`h-16 ${
+                        index % 2 === 0 ? "w-3/4" : "w-2/3"
+                      } rounded-lg`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Hint Badge */}
+            <div className="p-4 border-t flex justify-center">
+              <Skeleton className="h-8 w-24" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!mounted || !game) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <motion.div
