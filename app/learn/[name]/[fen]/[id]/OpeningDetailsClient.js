@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -693,12 +694,85 @@ export default function OpeningDetailsClient({ name, fen, id }) {
     return null;
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        Loading opening details...
+  const LoadingSkeleton = () => (
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Navigation Bar Skeleton */}
+      <nav className="h-16 px-6 flex justify-between items-center border-b">
+        <Skeleton className="h-8 w-24" />
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-9 rounded-full" />
+          <Skeleton className="h-9 w-24" />
+        </div>
+      </nav>
+
+      {/* Main Content Area Skeleton */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex gap-8 items-start max-w-[1200px] w-full">
+          {/* Left Column - Chessboard Skeleton */}
+          <div className="flex-1 flex flex-col items-center">
+            <Skeleton className="h-8 w-96 mb-6" /> {/* Title */}
+            <div className="flex space-x-2 mb-4">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+            {/* Chessboard Skeleton */}
+            <Skeleton className="w-[600px] h-[600px] mb-6" />
+            {/* Buttons Skeleton */}
+            <div className="flex gap-4">
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+
+          {/* Right Column - Tutorial Panel Skeleton */}
+          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+            {/* Header Skeleton */}
+            <div className="px-4 py-3 border-b">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-24" />
+              </div>
+              <div className="mt-2">
+                <Skeleton className="h-4 w-48 mb-2" />
+                <Skeleton className="h-1 w-full" />
+              </div>
+            </div>
+
+            {/* Messages Area Skeleton */}
+            <div className="flex-1 p-4">
+              <div className="flex flex-col space-y-4">
+                {[...Array(5)].map((_, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      index % 2 === 0 ? "justify-start" : "justify-end"
+                    }`}
+                  >
+                    <Skeleton
+                      className={`h-16 ${
+                        index % 2 === 0 ? "w-3/4" : "w-2/3"
+                      } rounded-lg`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Input Area Skeleton */}
+            <div className="p-4 border-t">
+              <div className="flex gap-3">
+                <Skeleton className="h-10 flex-1" />
+                <Skeleton className="h-10 w-16" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    );
+    </div>
+  );
+
+  if (!mounted || !game || !openingDetails || isLoading) {
+    return <LoadingSkeleton />;
   }
   return (
     <motion.div
