@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import Link from "next/link";
@@ -19,37 +19,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast, Toaster } from "@/components/ui/sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 export default function OpeningDetailsClient({ name, fen, id }) {
-  console.log("1. Component Initialization - Props received:", {
-    name,
-    fen,
-    id,
-  });
-
-  // State Management
   const router = useRouter();
   const [game, setGame] = useState(null);
   const [openingDetails, setOpeningDetails] = useState(() => {
-    console.log("2. Setting initial openingDetails state");
     if (name && fen) {
       const details = {
         name: decodeURIComponent(name),
         fen: decodeURIComponent(fen),
       };
-      console.log("3. Initial openingDetails:", details);
       return details;
     }
-    console.log("3. No initial openingDetails");
     return null;
   });
 
@@ -62,37 +43,27 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   const [mounted, setMounted] = useState(false);
   const [userColor, setUserColor] = useState("white");
   const [suggestedMoves, setSuggestedMoves] = useState([]);
-  const [moveHistory, setMoveHistory] = useState([]);
   const [openingMoves, setOpeningMoves] = useState([]);
   const [currentOpeningMove, setCurrentOpeningMove] = useState(0);
   const [isOpeningPhase, setIsOpeningPhase] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialization Effects
   useEffect(() => {
-    console.log("4. Initial mount effect running");
     setMounted(true);
     const token = localStorage.getItem("jwtToken");
-    console.log("5. JWT Token exists:", !!token);
     if (!token) {
-      console.log("6. No token found, redirecting to home");
       router.push("/");
       return;
     }
     const id = localStorage.getItem("userId");
     if (id) {
-      console.log("7. User ID found:", id);
       setUserId(id);
       fetchUserData(id);
     }
   }, []);
 
   useEffect(() => {
-    console.log("8. Mounted state changed:", mounted);
-    console.log("9. Current openingDetails:", openingDetails);
     if (mounted && openingDetails && id) {
-      // Add id check
-      console.log("10. Initializing game and fetching opening details");
       const newGame = new Chess();
       setGame(newGame);
       const tempGame = new Chess(openingDetails.fen);
@@ -103,14 +74,12 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       });
     } else {
       if (mounted && !openingDetails) {
-        console.log("No opening details available, stopping loading");
         setIsLoading(false);
       }
     }
-  }, [mounted, openingDetails, id]); // Add id to dependencies
+  }, [mounted, openingDetails, id]);
 
   const fetchUserData = async (id) => {
-    console.log("11. Fetching user data for ID:", id);
     try {
       const response = await fetch(`/api/user?id=${id}`, {
         headers: {
@@ -120,102 +89,105 @@ export default function OpeningDetailsClient({ name, fen, id }) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("12. User data fetched successfully:", data.username);
         setUsername(data.username);
       } else {
         throw new Error("Failed to fetch user data");
       }
     } catch (error) {
-      console.error("13. Error fetching user data:", error);
-      toast.error("Failed to load user data");
+      console.log("Error in fetchUserData:", error);
     }
   };
 
   const parseOpeningMoves = (movesString) => {
-    console.log("14. Parsing opening moves string:", movesString);
     if (!movesString) {
-      console.log("15. No moves string provided");
       return [];
     }
-
     const moves = movesString
-      .split(/\d+\.?\s+/)
+      .split(/\d+\.\s*/)
       .filter(Boolean)
       .map((move) => move.trim())
       .flatMap((move) => move.split(/\s+/))
       .filter((move) => move && move.length > 0);
 
-    console.log("16. Parsed moves:", moves);
     return moves;
   };
 
   const addMessage = async (content) => {
-    console.log("17. Adding message:", content);
     setMessages((prev) => {
-      console.log("18. Previous messages:", prev);
       return [...prev, { role: "assistant", content }];
     });
     await new Promise((resolve) => setTimeout(resolve, 500));
   };
 
-  const startOpeningLesson = async (opening) => {
-    console.log("19. Starting opening lesson:", opening);
+  const startOpeningLesson = async (opening, moves) => {
     setMessages([]);
-
-    console.log("21. Username confirmed, starting lesson messages");
     await addMessage(`Welcome ${username}! Let's learn the ${opening.name}.`);
     await new Promise((resolve) => setTimeout(resolve, 800));
 
+    // AI based message
     await addMessage(
       `This opening is known for its strategic advantages in controlling the center.`
     );
     await new Promise((resolve) => setTimeout(resolve, 800));
 
-    if (openingMoves && openingMoves.length > 0) {
-      console.log("22. Setting first move:", openingMoves[0]);
-      await addMessage(
-        `Let's start with ${openingMoves[0]}. This is the key move that defines the opening.`
-      );
-      setSuggestedMoves([openingMoves[0]]);
+    if (moves && moves.length > 0) {
+      console.log("startOpening Moves", moves);
+      setOpeningMoves(moves);
+      let openingMoveIndex = 0;
+      while (openingMoveIndex < moves.length) {
+        // AI based
+        await addMessage(
+          `Let's start with ${moves[openingMoveIndex]}. This is the key move that defines the opening.`
+        );
+        setSuggestedMoves([moves[openingMoveIndex]]);
+        openingMoveIndex++;
+      }
+      startGeneralPhase();
     } else {
-      console.error("23. No opening moves available");
-      toast.error("Failed to load opening moves");
+      // Add toast here
+      console.log(
+        "Failed to load opening moves. The opening moves array is empty."
+      );
     }
   };
 
+  const startGeneralPhase = async () => {
+    setIsOpeningPhase(false);
+    setSuggestedMoves([]);
+    console.log("Start General Phase");
+  };
+
+  useEffect(() => {
+    console.log("Update Opening moves:", openingMoves);
+  }, [openingMoves]);
+
   const fetchOpeningDetails = async (openingId) => {
-    console.log("24. Fetching opening details for ID:", openingId);
     setIsLoading(true);
-    console.log("Loading state set to true before fetch");
 
     try {
       const response = await fetch(`/api/openings/${openingId}`);
-      console.log("API Response status:", response.status);
+      console.log("API Response status:", response);
 
       if (!response.ok) {
         throw new Error("Failed to fetch opening details");
       }
 
       const data = await response.json();
-      console.log("25. Opening details received:", data);
+      console.log("API Response data:", data);
 
-      if (data.opening) {
+      if (data && data.opening) {
         const opening = data.opening;
-        console.log("26. Parsing moves for opening:", opening);
         const moves = parseOpeningMoves(opening.moves);
+        console.log("123Opening moves:", moves);
         setOpeningMoves(moves);
-
-        console.log("27. Starting lesson with parsed moves");
-        await startOpeningLesson(opening);
+        await startOpeningLesson(opening, moves);
       } else {
         throw new Error("No opening data available");
       }
     } catch (error) {
-      console.error("28. Error fetching opening details:", error);
-      toast.error("Failed to load opening details");
+      console.log("Error in fetchOpeningDetails:", error);
       throw error;
     } finally {
-      console.log("29. Setting loading state to false in finally block");
       setIsLoading(false);
     }
   };
@@ -229,38 +201,194 @@ export default function OpeningDetailsClient({ name, fen, id }) {
     router.push("/");
   };
 
-  // Debug logs for render
-  useEffect(() => {
-    console.log("30. Current state on render:", {
-      mounted,
-      game: !!game,
-      openingDetails,
-      isLoading,
-      username,
-      openingMoves,
-      suggestedMoves,
-    });
-  });
+  // GAME Play stuff
+
+  const showToast = (title, description, variant = "default") => {
+    setToast({ title, description, variant });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const makeAMove = useCallback(
+    async (move) => {
+      const gameCopy = new Chess(game.fen());
+      let result = null;
+      try {
+        result = gameCopy.move(move);
+      } catch (error) {
+        console.log("Result:", result);
+      }
+
+      if (result) {
+        setGame(gameCopy);
+        const moveNotation = `${
+          result.color === "w" ? "White" : "Black"
+        } moved from ${result.from} to ${result.to}`;
+
+        setMoveHistory((prevMoveHistory) => {
+          if (moveIndex < prevMoveHistory.length) {
+            return [...prevMoveHistory.slice(0, moveIndex), moveNotation];
+          }
+          return [...prevMoveHistory, moveNotation];
+        });
+
+        setMoveIndex((prevIndex) => prevIndex + 1);
+
+        await saveGameState();
+
+        if (gameCopy.isCheckmate()) {
+          setShowCheckmateDialog(true);
+        } else if (gameCopy.isCheck()) {
+          console.log("Check!");
+        }
+      }
+      return result;
+    },
+    [game]
+  );
+
+  const onDrop = useCallback(
+    async (sourceSquare, targetSquare) => {
+      if (!gameStarted) {
+        showToast(
+          "Game not started",
+          "Please click the Start button to begin the game.",
+          "destructive"
+        );
+        return false;
+      }
+      if (game.turn() !== userColor[0]) {
+        showToast(
+          "Not your turn",
+          "Please wait for your opponent's move.",
+          "destructive"
+        );
+        return false;
+      }
+      const move = await makeAMove({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
+      console.log(move);
+      if (move === null) {
+        showToast(
+          "Invalid move",
+          "Please try a different move.",
+          "destructive"
+        );
+        return false;
+      }
+      setTimeout(handleAIMove, 300);
+      setMovesSinceQuickSave((prevMoves) => prevMoves + 1);
+      return true;
+    },
+    [game, userColor, makeAMove]
+  );
+
+  const getAIMove = useCallback(async () => {
+    console.log("getAIMove()");
+    const aiColor = userColor === "white" ? "b" : "w";
+    if (game.turn() !== aiColor) return;
+
+    try {
+      const possibleMoves = game.moves();
+      console.log("Possible moves:", possibleMoves);
+
+      let prompt = `You are a chess AI assistant. The current game state in FEN notation is: ${game.fen()}. 
+The available legal moves in this position are: ${possibleMoves.join(", ")}. `;
+
+      if (opponent === "Castle.ai") {
+        prompt += `The difficulty level is set to ${mode}. Please provide the next best move for ${
+          aiColor === "w" ? "white" : "black"
+        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"). For ${mode} difficulty, ${
+          mode === "easy"
+            ? "choose any legal move from the list, favoring less optimal moves"
+            : mode === "medium"
+            ? "choose a moderately strong move from the list"
+            : "choose the strongest move from the list"
+        }. Return ONLY the move in standard algebraic notation, without any additional text.`;
+      } else {
+        prompt += `You are playing as ${opponent}. Please provide the next best move for ${
+          aiColor === "w" ? "white" : "black"
+        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"), mimicking ${opponent}'s playing style and typical strategies. 
+${
+  opponent === "Magnus Carlsen"
+    ? "Choose moves that demonstrate positional understanding and technical precision."
+    : opponent === "Garry Kasparov"
+    ? "Prefer aggressive and tactical moves that create attacking opportunities."
+    : opponent === "Bobby Fischer"
+    ? "Focus on clear, principled moves with a mix of tactical brilliance."
+    : opponent === "Samay Raina"
+    ? "Choose entertaining moves that maintain a balance between fun and competitive play."
+    : ""
+}
+Return ONLY the move in standard algebraic notation, without any additional text.`;
+      }
+
+      const res = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch AI move");
+      }
+
+      const data = await res.json();
+      const aiMove = data.response.trim();
+
+      if (possibleMoves.includes(aiMove)) {
+        console.log("Selected AI move:", aiMove);
+        makeAMove(aiMove);
+      } else {
+        console.error("Invalid AI move received:", aiMove);
+        const fallbackMove =
+          possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        console.log("Falling back to:", fallbackMove);
+        makeAMove(fallbackMove);
+      }
+    } catch (error) {
+      console.error("Error getting AI move:", error);
+      const possibleMoves = game.moves();
+      const fallbackMove =
+        possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+      console.log("Error fallback move:", fallbackMove);
+      makeAMove(fallbackMove);
+    }
+  }, [game, makeAMove, userColor]);
+
+  const handleAIMove = useCallback(() => {
+    console.log("Handle AI move called");
+    if (game.isGameOver()) {
+      if (game.isCheckmate()) {
+        setShowCheckmateDialog(true);
+      } else {
+        showToast(
+          "Game over",
+          "The game is over. Please start a new game.",
+          "destructive"
+        );
+      }
+      return;
+    }
+    getAIMove();
+  }, [game, getAIMove]);
 
   if (!mounted || !game || !openingDetails) {
-    console.log("31. Rendering null due to:", {
-      mounted,
-      hasGame: !!game,
-      hasOpeningDetails: !!openingDetails,
-    });
     return null;
   }
 
   if (isLoading) {
-    console.log("32. Rendering loading state");
     return (
       <div className="flex items-center justify-center h-screen">
         Loading opening details...
       </div>
     );
   } else {
-    console.log("33. Rendering full component");
-
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -345,7 +473,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
                     });
 
                     if (move === null) return false;
-                    return handleUserMove(move.san);
+                    return handleUserMove(move);
                   }}
                 />
               </div>
