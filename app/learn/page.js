@@ -24,6 +24,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -133,7 +134,54 @@ export default function Learn() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  if (!mounted) return null;
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
+        {/* Navigation Bar Skeleton */}
+        <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
+          <Skeleton className="h-8 w-24" />
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </nav>
+
+        <div className="flex-grow flex items-center justify-center p-6">
+          <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto gap-8">
+            {/* Chess Board Skeleton */}
+            <div className="w-full md:w-1/2 flex items-center justify-center">
+              <Skeleton className="h-[550px] w-[550px]" />
+            </div>
+
+            {/* Openings Grid Skeleton */}
+            <div className="w-full md:w-1/2 flex flex-col">
+              <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
+                {[...Array(10)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="bg-white dark:bg-black shadow rounded-lg p-2 border-2 border-gray-300 dark:border-gray-700"
+                  >
+                    <Skeleton className="h-16 w-full" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination Skeleton */}
+              <div className="mt-auto flex justify-center">
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  {[...Array(5)].map((_, index) => (
+                    <Skeleton key={index} className="h-10 w-10 rounded-lg" />
+                  ))}
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
