@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -21,6 +22,12 @@ function Dashboard() {
   const [username, setUsername] = useState("");
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState({
+    play: false,
+    learn: false,
+    puzzle: false,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -54,22 +61,27 @@ function Dashboard() {
         },
       });
 
-      console.log("fetchUserData Response:", response);
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch user data");
       }
 
       const data = await response.json();
-      console.log("User data:", data);
       setUsername(data.username);
       setUserId(id);
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching user data:", error);
       localStorage.removeItem("jwtToken");
       router.push("/");
     }
+  };
+
+  const handleImageLoad = (section) => {
+    setImagesLoaded((prev) => ({
+      ...prev,
+      [section]: true,
+    }));
   };
 
   const handleSignOut = () => {
@@ -78,6 +90,27 @@ function Dashboard() {
   };
 
   if (!mounted) return null;
+
+  const cards = [
+    {
+      href: `/play?id=${userId}`,
+      src: "/play.gif",
+      title: "Play",
+      key: "play",
+    },
+    {
+      href: `/learn?id=${userId}`,
+      src: "/learn.gif",
+      title: "Learn",
+      key: "learn",
+    },
+    {
+      href: `/puzzle?id=${userId}`,
+      src: "/puzzle.gif",
+      title: "Puzzles",
+      key: "puzzle",
+    },
+  ];
 
   return (
     <motion.div
@@ -108,7 +141,7 @@ function Dashboard() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="text-lg font-semibold">
-                {username}
+                {isLoading ? <Skeleton className="h-6 w-24" /> : username}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -123,37 +156,31 @@ function Dashboard() {
       <div className="flex-grow flex items-center justify-center">
         <div className="container mx-auto px-4">
           <div className="flex justify-center space-x-12">
-            {[
-              {
-                href: `/play?id=${userId}`,
-                src: "/play.gif",
-                title: "Play",
-              },
-              {
-                href: `/learn?id=${userId}`,
-                src: "/learn.gif",
-                title: "Learn",
-              },
-              {
-                href: `/puzzle?id=${userId}`,
-                src: "/puzzle.gif",
-                title: "Puzzles",
-              },
-            ].map((item) => (
+            {cards.map((item) => (
               <Link key={item.href} href={item.href}>
                 <div className="bg-white dark:bg-black rounded-lg p-8 w-80 h-96 shadow-lg hover:shadow-2xl active:bg-slate-100 dark:hover:shadow-2xl dark:active:bg-slate-900 transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
-                  <div className="flex justify-center mb-6">
+                  <div className="flex justify-center mb-6 relative w-[150px] h-[150px]">
+                    {!imagesLoaded[item.key] && (
+                      <Skeleton className="absolute w-[150px] h-[150px] rounded-full" />
+                    )}
                     <Image
                       src={item.src}
                       alt={item.title}
                       width={150}
                       height={150}
-                      className="rounded-full"
+                      className={`rounded-full ${
+                        !imagesLoaded[item.key] ? "invisible" : ""
+                      }`}
+                      onLoad={() => handleImageLoad(item.key)}
                     />
                   </div>
-                  <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
-                    {item.title}
-                  </h2>
+                  {isLoading ? (
+                    <Skeleton className="h-9 w-24" />
+                  ) : (
+                    <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white">
+                      {item.title}
+                    </h2>
+                  )}
                 </div>
               </Link>
             ))}
