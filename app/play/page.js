@@ -565,7 +565,7 @@ Return ONLY the move in standard algebraic notation, without any additional text
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+      className="min-h-screen bg-white dark:bg-black flex flex-col"
     >
       {toast && (
         <div
@@ -585,7 +585,7 @@ Return ONLY the move in standard algebraic notation, without any additional text
           Castle.ai
         </div>
         <div className="flex items-center justify-center">
-          <div className="px-3 py-1 ">Turn :</div>
+          <div className="px-3 py-1  dark:text-white text-black">Turn :</div>
           <div className="flex space-x-2">
             <div
               className={`px-3 py-1 rounded ${
@@ -613,14 +613,17 @@ Return ONLY the move in standard algebraic notation, without any additional text
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5  dark:text-white text-black" />
             ) : (
               <Sun className="h-5 w-5" />
             )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold  dark:text-white text-black"
+              >
                 {username}
               </Button>
             </DropdownMenuTrigger>
@@ -650,10 +653,12 @@ Return ONLY the move in standard algebraic notation, without any additional text
             />
           </div>
           <div className="w-120 space-y-5">
-            <h3 className="text-lg font-semibold mb-">Game Controls</h3>
+            <h3 className="text-lg font-semibold  dark:text-white text-black">
+              Game Controls
+            </h3>
             <div className="mb-4 flex space-x-4 items-center">
               <Toggle
-                className="border-2 border-white"
+                className="border-2 border-black  dark:text-white text-black dark:border-white"
                 pressed={userColor === "black"}
                 onPressedChange={(pressed) =>
                   setUserColor(pressed ? "black" : "white")
@@ -664,6 +669,7 @@ Return ONLY the move in standard algebraic notation, without any additional text
               </Toggle>
               <Select
                 value={opponent}
+                className="dark:text-white text-black"
                 onValueChange={(value) => {
                   setOpponent(value);
                   if (value !== "Castle.ai") {
@@ -672,21 +678,40 @@ Return ONLY the move in standard algebraic notation, without any additional text
                 }}
                 disabled={gameStarted}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-[180px] dark:text-white text-black ">
                   <SelectValue placeholder="Select opponent" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Castle.ai">Castle.ai</SelectItem>
-                  <SelectItem value="Magnus Carlsen">
+                  <SelectItem
+                    value="Castle.ai"
+                    className="dark:text-white text-black"
+                  >
+                    Castle.ai
+                  </SelectItem>
+                  <SelectItem
+                    value="Magnus Carlsen"
+                    className="dark:text-white text-black"
+                  >
                     Magnus Carlsen.ai
                   </SelectItem>
-                  <SelectItem value="Garry Kasparov">
+                  <SelectItem
+                    value="Garry Kasparov"
+                    className="dark:text-white text-black"
+                  >
                     Garry Kasparov.ai
                   </SelectItem>
-                  <SelectItem value="Bobby Fischer">
+                  <SelectItem
+                    value="Bobby Fischer"
+                    className="dark:text-white text-black"
+                  >
                     Bobby Fischer.ai
                   </SelectItem>
-                  <SelectItem value="Samay Raina">Samay Raina.ai</SelectItem>
+                  <SelectItem
+                    value="Samay Raina"
+                    className="dark:text-white text-black"
+                  >
+                    Samay Raina.ai
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Button onClick={handleGameStart} disabled={gameStarted}>
@@ -694,7 +719,9 @@ Return ONLY the move in standard algebraic notation, without any additional text
               </Button>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-2">Select Difficulty</h3>
+              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
+                Select Difficulty
+              </h3>
               <RadioGroup
                 defaultValue="easy"
                 onValueChange={handleModeChange}
@@ -704,15 +731,15 @@ Return ONLY the move in standard algebraic notation, without any additional text
                     : ""
                 }`}
               >
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 dark:text-white text-black">
                   <RadioGroupItem value="easy" id="easy" />
                   <label htmlFor="easy">Easy</label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 dark:text-white text-black">
                   <RadioGroupItem value="medium" id="medium" />
                   <label htmlFor="medium">Medium</label>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 dark:text-white text-black">
                   <RadioGroupItem value="hard" id="hard" />
                   <label htmlFor="hard">Hard</label>
                 </div>
@@ -720,7 +747,9 @@ Return ONLY the move in standard algebraic notation, without any additional text
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-2">Match Controls</h3>
+              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
+                Match Controls
+              </h3>
 
               <div className="space-x-2">
                 <AlertDialog
@@ -788,7 +817,9 @@ Return ONLY the move in standard algebraic notation, without any additional text
               </div>
             </div>
             <div className="flex flex-col ">
-              <h3 className="text-lg font-semibold mb-2">Moves</h3>
+              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
+                Moves
+              </h3>
               <ScrollArea className="h-96 rounded-md border whitespace-nowrap">
                 <div className="p-4 flex flex-col-reverse">
                   {moveHistory.map((move, index) => (
@@ -796,8 +827,8 @@ Return ONLY the move in standard algebraic notation, without any additional text
                       key={index}
                       className={`py-1 ${
                         index === moveIndex - 1
-                          ? "bg-blue-100 dark:bg-zinc-500 p-4 rounded-md object-cover"
-                          : "p-4 object-cover"
+                          ? "bg-zinc-300 dark:bg-zinc-500 p-4 rounded-md object-cover dark:text-white text-black"
+                          : "p-4 object-cover dark:text-white text-black"
                       }`}
                     >
                       {move}

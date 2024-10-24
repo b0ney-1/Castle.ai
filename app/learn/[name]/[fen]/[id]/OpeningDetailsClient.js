@@ -780,11 +780,13 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="h-screen bg-background flex flex-col overflow-hidden"
+      className="h-screen bg-background flex flex-col overflow-hidden bg-white dark:bg-black"
     >
       {/* Navigation Bar */}
-      <nav className="h-16 px-6 flex justify-between items-center border-b">
-        <div className="text-2xl font-bold">Castle.ai</div>
+      <nav className="h-16 px-6 flex justify-between items-center">
+        <div className="text-2xl font-bold dark:text-white text-black">
+          Castle.ai
+        </div>
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -792,14 +794,17 @@ export default function OpeningDetailsClient({ name, fen, id }) {
             className="h-9 w-9 p-0"
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 dark:text-white text-black" />
             ) : (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-5 w-5 dark:text-white text-black" />
             )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold dark:text-white text-black"
+              >
                 {username}
               </Button>
             </DropdownMenuTrigger>
@@ -822,7 +827,9 @@ export default function OpeningDetailsClient({ name, fen, id }) {
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard */}
           <div className="flex-1 flex flex-col items-center">
-            <h1 className="text-2xl font-bold mb-6">{openingDetails.name}</h1>
+            <h1 className="text-2xl font-bold mb-6 dark:text-white text-black">
+              {openingDetails.name}
+            </h1>
             <div className="flex space-x-2 mb-4">
               <div
                 className={`px-3 py-1 rounded ${
@@ -865,11 +872,13 @@ export default function OpeningDetailsClient({ name, fen, id }) {
           </div>
 
           {/* Right Column - Chat & Moves */}
-          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+          <div className="w-[400px] h-[700px] flex flex-col bg-white dark:bg-black rounded-lg border shadow-sm">
             {/* Header */}
             <div className="px-4 py-3 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Opening Tutorial</h2>
+                <h2 className="text-lg font-semibold dark:text-white text-black">
+                  Opening Tutorial
+                </h2>
                 <Badge variant={isOpeningPhase ? "default" : "secondary"}>
                   {isOpeningPhase ? "Learning Phase" : "Practice Phase"}
                 </Badge>
@@ -881,7 +890,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
                   </div>
                   <div className="h-1 mt-1 bg-secondary rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all duration-300"
+                      className="h-full bg-primary transition-all duration-300 dark:text-white text-black"
                       style={{
                         width: `${
                           ((currentOpeningMove + 1) / openingMoves.length) * 100
@@ -907,7 +916,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
                       <LoadingMessage />
                     ) : (
                       <div
-                        className={`relative max-w-[85%] rounded-lg px-4 py-2 ${
+                        className={`relative max-w-[85%] rounded-lg px-4 py-2 dark:text-white text-black ${
                           message.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted"
@@ -925,7 +934,9 @@ export default function OpeningDetailsClient({ name, fen, id }) {
             {/* Suggested Moves */}
             {suggestedMoves.length > 0 && (
               <div className="p-4 border-t">
-                <div className="text-sm font-medium mb-2">Suggested Moves:</div>
+                <div className="text-sm font-medium mb-2 dark:text-white text-black">
+                  Suggested Moves:
+                </div>
                 <div className="flex gap-2 flex-wrap">
                   {suggestedMoves.map((move, index) => (
                     <Badge

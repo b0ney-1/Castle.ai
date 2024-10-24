@@ -206,9 +206,9 @@ export default function Learn() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+      className="min-h-screen bg-white dark:bg-black flex flex-col"
     >
-      <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
+      <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black">
         <div
           className="text-2xl font-bold text-gray-800 dark:text-white cursor-pointer"
           onClick={() => router.push("/home?id=" + userId)}
@@ -221,14 +221,17 @@ export default function Learn() {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 dark:text-white text-black" />
             ) : (
               <Sun className="h-5 w-5" />
             )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold dark:text-white text-black"
+              >
                 {username}
               </Button>
             </DropdownMenuTrigger>
@@ -264,7 +267,7 @@ export default function Learn() {
                 {openings.map((opening, index) => (
                   <div
                     key={`${opening.id}_${index}`}
-                    className="bg-white dark:bg-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
+                    className="bg-white dark:bg-black dark:text-white text-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
                     onClick={() => handleOpeningClick(opening)}
                     onMouseEnter={() => {
                       try {
@@ -278,7 +281,7 @@ export default function Learn() {
                       }
                     }}
                   >
-                    <h3 className="text-md font-semibold mb-2 dark:text-white ">
+                    <h3 className="text-md font-medium mb-2 dark:text-white ">
                       {opening.name.length > 50
                         ? `${opening.name.slice(0, 47)}...`
                         : opening.name}
@@ -287,14 +290,14 @@ export default function Learn() {
                 ))}
               </div>
             )}
-            <Pagination className="mt-auto">
+            <Pagination className="mt-auto  dark:text-white text-black">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => handlePageChange(Math.max(0, page - 1))}
-                    className={
+                    className={`${
                       page === 0 ? "pointer-events-none opacity-50" : ""
-                    }
+                    } dark:text-white text-black`}
                   />
                 </PaginationItem>
                 {totalPages > 0 &&
@@ -309,6 +312,11 @@ export default function Learn() {
                           <PaginationLink
                             onClick={() => handlePageChange(pageNumber)}
                             isActive={page === pageNumber}
+                            className={
+                              page === pageNumber
+                                ? `bg-white dark:bg-black border-black dark:border-white dark:text-white text-black`
+                                : ""
+                            }
                           >
                             {pageNumber + 1}
                           </PaginationLink>
@@ -317,17 +325,17 @@ export default function Learn() {
                     }
                     return null;
                   })}
-                {totalPages > 5 && <PaginationEllipsis />}
+                {totalPages > 5 && (
+                  <PaginationEllipsis className="dark:text-white text-black" />
+                )}
                 <PaginationItem>
                   <PaginationNext
                     onClick={() =>
                       handlePageChange(Math.min(totalPages - 1, page + 1))
                     }
-                    className={
-                      page === totalPages - 1
-                        ? "pointer-events-none opacity-50"
-                        : ""
-                    }
+                    className={`${
+                      page === 0 ? "pointer-events-none opacity-50" : ""
+                    } dark:text-white text-black`}
                   />
                 </PaginationItem>
               </PaginationContent>

@@ -110,9 +110,9 @@ export default function PuzzleGallery() {
   if (!mounted) return null;
 
   return (
-    <div className="h-screen flex flex-col bg-gray-100 dark:bg-black overflow-hidden">
-      <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-background border-b">
-        <div className="text-2xl font-bold text-gray-800 dark:text-white">
+    <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
+      <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black ">
+        <div className="text-2xl font-bold text-black dark:text-white">
           Castle.ai
         </div>
         <div className="flex items-center gap-4">
@@ -122,7 +122,7 @@ export default function PuzzleGallery() {
             className="h-9 w-9 p-0"
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 text-black dark:text-white" />
             ) : (
               <Sun className="h-5 w-5" />
             )}
@@ -130,7 +130,10 @@ export default function PuzzleGallery() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold text-black dark:text-white"
+              >
                 {username}
               </Button>
             </DropdownMenuTrigger>
@@ -149,7 +152,9 @@ export default function PuzzleGallery() {
       </nav>
 
       <div className="flex-1 flex flex-col justify-center items-center pt-8 pb-12 px-6 ">
-        <h1 className="text-3xl font-bold mb-8">Puzzles</h1>
+        <h1 className="text-3xl font-bold mb-8  text-black dark:text-white">
+          Puzzles
+        </h1>
 
         <div className="min-h-screen w-full flex items-center justify-center">
           <div className="w-full max-w-[1400px] h-[calc(100vh-220px)] flex justify-center items-center">
@@ -193,8 +198,8 @@ export default function PuzzleGallery() {
                     ))}
                   </CarouselContent>
                 )}
-                <CarouselPrevious className="absolute -left-24 " />
-                <CarouselNext className="absolute -right-24" />
+                <CarouselPrevious className="absolute -left-24  dark:bg-black dark:text-white dark:hover:bg-black/90 bg-white text-black hover:bg-white/90" />
+                <CarouselNext className="absolute -right-24  dark:bg-black dark:text-white dark:hover:bg-black/90 bg-white text-black hover:bg-white/90" />
               </Carousel>
             </div>
           </div>

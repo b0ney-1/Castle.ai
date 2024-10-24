@@ -118,7 +118,7 @@ function Dashboard() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+      className="min-h-screen bg-white dark:bg-black flex flex-col"
     >
       <nav className="py-4 px-6 flex justify-between items-center">
         <div
@@ -133,14 +133,17 @@ function Dashboard() {
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5 dark:text-white text-black" />
             ) : (
               <Sun className="h-5 w-5" />
             )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold  dark:text-white text-black"
+              >
                 {isLoading ? <Skeleton className="h-6 w-24" /> : username}
               </Button>
             </DropdownMenuTrigger>
@@ -168,9 +171,9 @@ function Dashboard() {
                       alt={item.title}
                       width={150}
                       height={150}
-                      className={`rounded-full ${
-                        !imagesLoaded[item.key] ? "invisible" : ""
-                      }`}
+                      className={`rounded-full filter ${
+                        theme === "dark" ? "" : "invert"
+                      } ${!imagesLoaded[item.key] ? "invisible" : ""}`}
                       onLoad={() => handleImageLoad(item.key)}
                     />
                   </div>

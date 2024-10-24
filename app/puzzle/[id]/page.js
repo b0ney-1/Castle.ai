@@ -457,11 +457,13 @@ export default function PuzzleSolver() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="h-screen bg-background flex flex-col overflow-hidden"
+      className="h-screen  bg-white dark:bg-black flex flex-col overflow-hidden"
     >
       {/* Navigation */}
-      <nav className="h-16 px-6 flex justify-between items-center border-b">
-        <div className="text-2xl font-bold">Castle.ai</div>
+      <nav className="h-16 px-6 flex justify-between items-center">
+        <div className="text-2xl font-bold  text-black dark:text-white">
+          Castle.ai
+        </div>
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -469,14 +471,17 @@ export default function PuzzleSolver() {
             className="h-9 w-9 p-0"
           >
             {theme === "light" ? (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5  text-black dark:text-white" />
             ) : (
               <Sun className="h-5 w-5" />
             )}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="text-lg font-semibold">
+              <Button
+                variant="ghost"
+                className="text-lg font-semibold  text-black dark:text-white"
+              >
                 {username}
               </Button>
             </DropdownMenuTrigger>
@@ -499,7 +504,7 @@ export default function PuzzleSolver() {
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard */}
           <div className="flex-1 flex flex-col items-center">
-            <h1 className="text-2xl font-bold mb-6">
+            <h1 className="text-2xl font-bold mb-6  text-black dark:text-white">
               Puzzle #{puzzleData?.gameId}
             </h1>
             <div className="flex space-x-2 mb-4">
@@ -545,12 +550,19 @@ export default function PuzzleSolver() {
           </div>
 
           {/* Right Column - Chat & Hint */}
-          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+          <div className="w-[400px] h-[700px] flex flex-col  bg-white dark:bg-black rounded-lg border shadow-sm">
             <div className="px-4 py-3 border-b">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Puzzle Tutorial</h2>
+                <h2 className="text-lg font-semibold  text-black dark:text-white">
+                  Puzzle Tutorial
+                </h2>
                 {isAIThinking && (
-                  <Badge variant="secondary">AI is thinking...</Badge>
+                  <Badge
+                    variant="secondary"
+                    className={"text-black dark:text-white"}
+                  >
+                    AI is thinking...
+                  </Badge>
                 )}
               </div>
             </div>
@@ -567,8 +579,8 @@ export default function PuzzleSolver() {
                     <div
                       className={`relative max-w-[85%] rounded-lg px-4 py-2 ${
                         message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                          ? "bg-black text-white dark:bg-white dark:text-black" // User messages
+                          : "bg-gray-100 text-black dark:bg-zinc-800 dark:text-white" // Assistant messages
                       }`}
                     >
                       {message.content}
