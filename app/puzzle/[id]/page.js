@@ -1,12 +1,10 @@
 "use client";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
-import { useRouter, useParams } from "next/navigation";
 import { Moon, Sun, RotateCcw, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,23 +22,49 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 export default function PuzzleSolver() {
-  const router = useRouter();
-  const params = useParams();
-  const [game, setGame] = useState(new Chess());
+  const [game, setGame] = useState(null);
+  const gameRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const scrollAreaRef = useRef(null);
+
   const [puzzleData, setPuzzleData] = useState(null);
-  const [moveHistory, setMoveHistory] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [showFailureDialog, setShowFailureDialog] = useState(false);
+  const [userColor, setUserColor] = useState("white");
   const [isAIThinking, setIsAIThinking] = useState(false);
-  const [toast, setToast] = useState(null);
 
+  const searchParams = useSearchParams();
+  const encodedData = searchParams.get("data");
+  const data = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : null;
+
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  // Update game ref when game state changes
+  const updateGame = useCallback((newGame) => {
+    setGame(newGame);
+    gameRef.current = newGame;
+  }, []);
+
+  // Initial setup
   useEffect(() => {
     setMounted(true);
     const id = localStorage.getItem("userId");
@@ -51,22 +75,278 @@ export default function PuzzleSolver() {
   }, []);
 
   useEffect(() => {
-    if (params?.id) {
-      fetchPuzzle(params.id);
-    }
-  }, [params?.id]);
-
-  const fetchPuzzle = async (puzzleId) => {
-    try {
-      const response = await fetch(`/api/puzzles/${puzzleId}`);
-      const data = await response.json();
-      setPuzzleData(data);
+    if (data && mounted && !game) {
+      // Add !game check
       const newGame = new Chess(data.fen);
-      setGame(newGame);
+      console.log(data.fen);
+
+      const isWhiteToMove = data.fen.split(" ")[1] === "w";
+
+      setPuzzleData(data);
+      setUserColor(isWhiteToMove ? "white" : "black");
+      updateGame(newGame);
+    }
+  }, [data, mounted, updateGame, game]);
+
+  // Separate effect for messages
+  useEffect(() => {
+    if (username && userColor && game && !messages.length) {
+      // Add !messages.length check
+      setMessages([
+        {
+          role: "assistant",
+          content: `Welcome ${username}! You'll be playing as ${userColor} in this puzzle.`,
+          isThinking: false,
+        },
+      ]);
+    }
+  }, [username, userColor, game, messages.length]);
+
+  useEffect(() => {
+    return () => {
+      setGame(null);
+      gameRef.current = null;
+      setMessages([]);
+      setIsAIThinking(false);
+      setShowSuccessDialog(false);
+    };
+  }, []);
+
+  const addMessage = useCallback(
+    (content, role = "assistant", isThinking = false) => {
+      setMessages((prev) => [...prev, { role, content, isThinking }]);
+    },
+    []
+  );
+
+  const removeThinkingMessages = () => {
+    setMessages((prev) => prev.filter((msg) => !msg.isThinking));
+  };
+
+  const getMoveResponse = async (move) => {
+    try {
+      const prompt = `You are a chess coach. The player just made the move ${move}. 
+        Give a very brief (maximum 10 words) encouraging response about their move. 
+        Keep it natural and varied. Don't be repetitive.`;
+
+      const res = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) throw new Error("Failed to get move response");
+
+      const data = await res.json();
+      return data.response.trim();
     } catch (error) {
-      console.error("Error fetching puzzle:", error);
+      console.error("Error getting move response:", error);
+      return "Nice move! Let me think about my response...";
     }
   };
+
+  const getHint = useCallback(async () => {
+    if (!gameRef.current) return;
+
+    try {
+      const prompt = `You are a chess coach. Given the current position in FEN notation: ${gameRef.current.fen()},
+      provide a subtle hint about the best move without directly revealing it.
+      Consider the tactical and strategic elements but don't give away the move.
+      Keep it under 15 words and make it engaging.`;
+
+      const res = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) throw new Error("Failed to get hint");
+
+      const data = await res.json();
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response.trim(),
+          isThinking: false,
+        },
+      ]);
+    } catch (error) {
+      console.error("Error getting hint:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Look for the strongest piece and its best possible move.",
+          isThinking: false,
+        },
+      ]);
+    }
+  }, [gameRef]);
+
+  const makeAMove = useCallback(
+    async (move) => {
+      if (!gameRef.current) return null;
+
+      const gameCopy = new Chess(gameRef.current.fen());
+      let result = null;
+
+      try {
+        result = gameCopy.move(move);
+      } catch (error) {
+        console.error("Move error:", error);
+        return null;
+      }
+
+      if (result) {
+        updateGame(gameCopy);
+
+        if (gameCopy.isCheckmate()) {
+          const winner = gameCopy.turn() === "w" ? "Black" : "White";
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `Checkmate! ${winner} wins!`,
+              isThinking: false,
+            },
+          ]);
+          setShowSuccessDialog(true);
+        } else if (gameCopy.isDraw()) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: "The game is a draw!",
+              isThinking: false,
+            },
+          ]);
+        } else if (gameCopy.isCheck()) {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: "Check!",
+              isThinking: false,
+            },
+          ]);
+        }
+      }
+
+      return result;
+    },
+    [updateGame]
+  );
+
+  const getAIMove = useCallback(async () => {
+    if (!gameRef.current) return;
+
+    const aiColor = userColor === "white" ? "b" : "w";
+    if (gameRef.current.turn() !== aiColor) return;
+
+    try {
+      setIsAIThinking(true);
+      await addMessage("Thinking about my move...", "assistant", true);
+
+      const possibleMoves = gameRef.current.moves();
+      const prompt = `You are a chess engine. Given the current position in FEN: ${gameRef.current.fen()},
+        calculate the absolute best possible move from these legal moves: ${possibleMoves.join(
+          ", "
+        )}.
+        Return only the move in algebraic notation.`;
+
+      const response = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      removeThinkingMessages();
+
+      if (!response.ok) throw new Error("Failed to get AI move");
+
+      const data = await response.json();
+      const aiMove = data.response.trim();
+
+      if (possibleMoves.includes(aiMove)) {
+        await addMessage(`I'll play ${aiMove}`);
+        await makeAMove(aiMove);
+      } else {
+        const bestMove = possibleMoves[0];
+        await addMessage(`I'll play ${bestMove}`);
+        await makeAMove(bestMove);
+      }
+    } catch (error) {
+      console.error("Error getting AI move:", error);
+      const possibleMoves = gameRef.current.moves();
+      const bestMove = possibleMoves[0];
+      await addMessage(`I'll play ${bestMove}`);
+      await makeAMove(bestMove);
+    } finally {
+      setIsAIThinking(false);
+    }
+  }, [gameRef, userColor, makeAMove]);
+
+  const onDrop = useCallback(
+    async (sourceSquare, targetSquare) => {
+      if (!gameRef.current || isAIThinking) return false;
+
+      if (gameRef.current.turn() !== userColor[0]) {
+        toast("Not your turn");
+        return false;
+      }
+
+      const move = {
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      };
+
+      const moveResult = await makeAMove(move);
+
+      if (moveResult === null) {
+        toast("Invalid move");
+        return false;
+      }
+
+      // Get response for user's move
+      const response = await getMoveResponse(moveResult.san);
+      await addMessage(response);
+
+      // If game isn't over, make AI move
+      if (!gameRef.current.isGameOver()) {
+        setTimeout(getAIMove, 500);
+      }
+
+      return true;
+    },
+    [gameRef, userColor, isAIThinking, makeAMove, getAIMove]
+  );
+
+  const resetPuzzle = useCallback(() => {
+    if (puzzleData) {
+      const newGame = new Chess(puzzleData.fen);
+      updateGame(newGame);
+      setIsAIThinking(false);
+      setShowSuccessDialog(false);
+      setMessages([
+        {
+          role: "assistant",
+          content: `Welcome ${username}! You'll be playing as ${userColor} in this puzzle.`,
+          isThinking: false,
+        },
+      ]);
+    }
+  }, [puzzleData, updateGame, username, userColor]);
 
   const fetchUserData = async (id) => {
     try {
@@ -82,114 +362,8 @@ export default function PuzzleSolver() {
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
+      toast("Error loading user data");
     }
-  };
-
-  const makeAMove = useCallback(
-    (move) => {
-      const gameCopy = new Chess(game.fen());
-      let result = null;
-
-      try {
-        result = gameCopy.move(move);
-      } catch (error) {
-        console.error("Invalid move:", error);
-        return null;
-      }
-
-      if (result) {
-        setGame(gameCopy);
-        const moveNotation = `${
-          result.color === "w" ? "White" : "Black"
-        } moved ${result.san}`;
-        setMoveHistory((prev) => [...prev, moveNotation]);
-
-        if (gameCopy.isCheckmate()) {
-          setShowSuccessDialog(true);
-        } else if (gameCopy.isCheck()) {
-          showToast("Check!");
-        }
-      }
-      return result;
-    },
-    [game]
-  );
-
-  const onDrop = useCallback(
-    (sourceSquare, targetSquare) => {
-      const move = makeAMove({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q",
-      });
-
-      if (move === null) {
-        showToast("Invalid move", "Please try a different move.");
-        return false;
-      }
-
-      // After player moves, trigger AI response
-      setTimeout(() => {
-        setIsAIThinking(true);
-        getAIMove();
-      }, 300);
-
-      return true;
-    },
-    [makeAMove]
-  );
-
-  const getAIMove = async () => {
-    try {
-      const possibleMoves = game.moves();
-
-      const prompt = `You are a chess engine. Given the current position in FEN: ${game.fen()}, 
-        calculate the best possible move from these legal moves: ${possibleMoves.join(
-          ", "
-        )}. 
-        Consider all tactical and strategic elements. Return only the move in algebraic notation.`;
-
-      const response = await fetch("/api/openai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) throw new Error("Failed to get AI move");
-
-      const data = await response.json();
-      const aiMove = data.response.trim();
-
-      if (possibleMoves.includes(aiMove)) {
-        makeAMove(aiMove);
-      } else {
-        const randomMove =
-          possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        makeAMove(randomMove);
-      }
-    } catch (error) {
-      console.error("Error getting AI move:", error);
-      const randomMove =
-        game.moves()[Math.floor(Math.random() * game.moves().length)];
-      makeAMove(randomMove);
-    } finally {
-      setIsAIThinking(false);
-    }
-  };
-
-  const resetPuzzle = () => {
-    if (puzzleData) {
-      const newGame = new Chess(puzzleData.fen);
-      setGame(newGame);
-      setMoveHistory([]);
-    }
-  };
-
-  const showToast = (title, description) => {
-    setToast({ title, description });
-    setTimeout(() => setToast(null), 3000);
   };
 
   const handleSignOut = () => {
@@ -197,7 +371,7 @@ export default function PuzzleSolver() {
     router.push("/");
   };
 
-  if (!mounted) return null;
+  if (!mounted || !game) return null;
 
   return (
     <motion.div
@@ -205,31 +379,16 @@ export default function PuzzleSolver() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gray-100 dark:bg-black flex flex-col"
+      className="h-screen bg-background flex flex-col overflow-hidden"
     >
-      {toast && (
-        <div className="fixed top-20 right-4 p-4 rounded-md shadow-md bg-white text-black z-50">
-          <h4 className="font-bold">{toast.title}</h4>
-          {toast.description && <p>{toast.description}</p>}
-        </div>
-      )}
-
-      <nav className="h-16 px-6 flex justify-between items-center bg-background border-b">
-        <div className="text-2xl font-bold text-gray-800 dark:text-white">
-          Castle.ai
-        </div>
+      {/* Navigation */}
+      <nav className="h-16 px-6 flex justify-between items-center border-b">
+        <div className="text-2xl font-bold">Castle.ai</div>
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
-            size="icon"
-            onClick={() => router.push("/puzzle")}
-          >
-            <Home className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="h-9 w-9 p-0"
           >
             {theme === "light" ? (
               <Moon className="h-5 w-5" />
@@ -243,7 +402,7 @@ export default function PuzzleSolver() {
                 {username}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onSelect={() => router.push(`/home?id=${userId}`)}
               >
@@ -257,79 +416,110 @@ export default function PuzzleSolver() {
         </div>
       </nav>
 
-      <div className="flex-1 p-8">
-        <div className="max-w-7xl mx-auto flex gap-8">
-          <div className="flex-1">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold mb-2">
-                Puzzle {puzzleData?.gameId}
-              </h1>
-              {isAIThinking && (
-                <div className="mb-4">
-                  <p className="text-sm mb-2">AI is thinking...</p>
-                  <Progress value={66} className="w-[60%]" />
-                </div>
-              )}
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="flex gap-8 items-start max-w-[1200px] w-full">
+          {/* Left Column - Chessboard */}
+          <div className="flex-1 flex flex-col items-center">
+            <h1 className="text-2xl font-bold mb-6">
+              Puzzle #{puzzleData?.gameId}
+            </h1>
+            <div className="flex space-x-2 mb-4">
+              <div
+                className={`px-3 py-1 rounded ${
+                  game.turn() === "w"
+                    ? "bg-white text-black"
+                    : "bg-black text-white"
+                }`}
+              >
+                White {userColor === "white" ? "(You)" : "(AI)"}
+              </div>
+              <div
+                className={`px-3 py-1 rounded ${
+                  game.turn() === "b"
+                    ? "bg-white text-black"
+                    : "bg-black text-white"
+                }`}
+              >
+                Black {userColor === "black" ? "(You)" : "(AI)"}
+              </div>
             </div>
-            <Chessboard
-              id="PuzzleBoard"
-              boardWidth={600}
-              position={game.fen()}
-              onPieceDrop={onDrop}
-            />
-            <div className="mt-6 flex gap-4">
-              <Button onClick={resetPuzzle} variant="outline">
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset Puzzle
+
+            <div className="w-[600px] mb-6">
+              <Chessboard
+                id="PuzzleBoard"
+                boardWidth={600}
+                position={game.fen()}
+                boardOrientation={userColor}
+                onPieceDrop={onDrop}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button onClick={resetPuzzle}>Reset Position</Button>
+              <Button
+                variant="secondary"
+                onClick={() => router.push("/puzzle")}
+              >
+                Back to Puzzles
               </Button>
             </div>
           </div>
 
-          <div className="w-[400px] bg-background rounded-lg p-6">
-            <div className="flex flex-col h-full">
-              <h2 className="text-xl font-semibold mb-4">Puzzle Information</h2>
-              {puzzleData && (
-                <div className="space-y-4 mb-6">
-                  <div className="text-sm">
-                    <span className="font-medium">Game ID:</span>{" "}
-                    {puzzleData.gameId}
-                  </div>
-                  <div className="text-sm break-all">
-                    <span className="font-medium">Position (FEN):</span>{" "}
-                    {puzzleData.fen}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2">Move History</h3>
-                <ScrollArea className="h-[400px] rounded-md border">
-                  <div className="p-4">
-                    {moveHistory.map((move, index) => (
-                      <div
-                        key={index}
-                        className="py-2 border-b last:border-b-0 text-sm"
-                      >
-                        {move}
-                      </div>
-                    ))}
-                    {moveHistory.length === 0 && (
-                      <div className="text-sm text-muted-foreground">
-                        Make your first move to start the puzzle
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
+          {/* Right Column - Chat & Hint */}
+          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+            <div className="px-4 py-3 border-b">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Puzzle Tutorial</h2>
+                {isAIThinking && (
+                  <Badge variant="secondary">AI is thinking...</Badge>
+                )}
               </div>
+            </div>
+
+            <ScrollArea className="flex-1 p-4">
+              <div className="flex flex-col space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`relative max-w-[85%] rounded-lg px-4 py-2 ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
+
+            {/* Hint Badge */}
+            <div className="p-4 border-t flex justify-center">
+              <Badge
+                variant="secondary"
+                className="cursor-pointer hover:bg-secondary/80 px-6 py-2 text-base"
+                onClick={getHint}
+              >
+                Get a hint
+              </Badge>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Puzzle Completed!</AlertDialogTitle>
+            <AlertDialogTitle>Puzzle Complete!</AlertDialogTitle>
             <AlertDialogDescription>
               Congratulations! You've successfully solved this puzzle. Would you
               like to try another one?
@@ -346,25 +536,7 @@ export default function PuzzleSolver() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={showFailureDialog} onOpenChange={setShowFailureDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Incorrect Solution</AlertDialogTitle>
-            <AlertDialogDescription>
-              That wasn't the best move for this position. Would you like to try
-              again?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowFailureDialog(false)}>
-              Continue
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={resetPuzzle}>
-              Try Again
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <Toaster />
     </motion.div>
   );
 }

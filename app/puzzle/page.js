@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Chessboard } from "react-chessboard";
-import { Chess } from "chess.js";
 import { useRouter } from "next/navigation";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -27,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 
 export default function PuzzleGallery() {
   const router = useRouter();
@@ -78,8 +76,12 @@ export default function PuzzleGallery() {
       });
   }, []);
 
-  const handlePuzzleSelect = (puzzleId) => {
-    router.push(`/puzzle/${puzzleId}`);
+  const handlePuzzleSelect = (puzzle) => {
+    console.log("Selected puzzle:", puzzle);
+
+    const encodedData = encodeURIComponent(JSON.stringify(puzzle));
+    // router.push(`/puzzle/${puzzleFen}`);
+    router.replace(`/puzzle/${puzzle.gameId}?data=${encodedData}`);
   };
 
   const handleSignOut = () => {
@@ -149,50 +151,52 @@ export default function PuzzleGallery() {
       <div className="flex-1 flex flex-col justify-center items-center pt-8 pb-12 px-6 ">
         <h1 className="text-3xl font-bold mb-8">Puzzles</h1>
 
-        <div className="w-full max-w-[1400px] h-[calc(100vh-220px)] flex justify-center align-center place-items-center">
-          <div className="relative w-full h-full px-12 ">
-            <Carousel className="w-full h-full ">
-              {isLoading ? (
-                <LoadingSkeleton />
-              ) : (
-                <CarouselContent className="h-full">
-                  {puzzles.map((puzzle, index) => (
-                    <CarouselItem
-                      key={index}
-                      className="md:basis-1/2 lg:basis-1/3 h-full"
-                    >
-                      <Card
-                        className="cursor-pointer hover:scale-[1.02] transition-all h-full"
-                        onClick={() => handlePuzzleSelect(puzzle.id)}
+        <div className="min-h-screen w-full flex items-center justify-center">
+          <div className="w-full max-w-[1400px] h-[calc(100vh-220px)] flex justify-center items-center">
+            <div className="relative w-full h-full px-12">
+              <Carousel className="w-full h-full">
+                {isLoading ? (
+                  <LoadingSkeleton />
+                ) : (
+                  <CarouselContent className="h-full">
+                    {puzzles.map((puzzle, index) => (
+                      <CarouselItem
+                        key={index}
+                        className="md:basis-1/2 lg:basis-1/3 h-full"
                       >
-                        <CardHeader>
-                          <CardTitle>Puzzle {index + 1}</CardTitle>
-                          <CardDescription>
-                            Game ID: {puzzle.gameId}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex items-center justify-center">
-                            <div className="relative w-full pt-[100%]">
-                              <div className="absolute top-0 left-0 right-0 bottom-0">
-                                <Chessboard
-                                  id={`puzzle-${index}`}
-                                  position={puzzle.fen}
-                                  boardWidth={380}
-                                  draggable={false}
-                                />
+                        <Card
+                          className="cursor-pointer hover:scale-[1.02] transition-all h-full"
+                          onClick={() => handlePuzzleSelect(puzzle)}
+                        >
+                          <CardHeader>
+                            <CardTitle>Puzzle {index + 1}</CardTitle>
+                            <CardDescription>
+                              Game ID: {puzzle.gameId}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center justify-center">
+                              <div className="relative w-full pt-[100%]">
+                                <div className="absolute top-0 left-0 right-0 bottom-0">
+                                  <Chessboard
+                                    id={`puzzle-${index}`}
+                                    position={puzzle.fen}
+                                    boardWidth={380}
+                                    draggable={false}
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-              )}
-              <CarouselPrevious className="absolute -left-24 top-1/2 -translate-y-1/2" />
-              <CarouselNext className="absolute -right-24 top-1/2 -translate-y-1/2" />
-            </Carousel>
+                          </CardContent>
+                        </Card>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                )}
+                <CarouselPrevious className="absolute -left-24 " />
+                <CarouselNext className="absolute -right-24" />
+              </Carousel>
+            </div>
           </div>
         </div>
       </div>
