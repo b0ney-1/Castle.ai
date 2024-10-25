@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import clientPromise from "../../../../lib/mongodb";
 
 export async function POST(req) {
@@ -24,18 +25,33 @@ export async function POST(req) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await db.collection("users").insertOne({
+    const result = await db.collection("users").insertOne({
       email,
       password: hashedPassword,
     });
 
+    const token = jwt.sign(
+      { userId: result.insertedId, email: email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     return new Response(
-      JSON.stringify({ message: "User registered successfully" }),
+      JSON.stringify({
+        token,
+        userId: result.insertedId,
+        message: "Registration successful",
+      }),
       { status: 201 }
     );
   } catch (error) {
-    return new Response(JSON.stringify({ message: "Server error", error }), {
-      status: 500,
-    });
+    console.error("Registration error:", error);
+    return new Response(
+      JSON.stringify({
+        message: "Server error",
+        error: error.message || "Unknown error occurred",
+      }),
+      { status: 500 }
+    );
   }
 }

@@ -39,9 +39,10 @@ function Dashboard() {
       const token = localStorage.getItem("jwtToken");
       if (!token) {
         console.log("Should push to root");
+        router.push("/");
       } else {
         console.log("Token present");
-        fetchUserData(null, token);
+        fetchUserData(id);
       }
     }
   }, [searchParams, router]);
@@ -60,6 +61,8 @@ function Dashboard() {
           Authorization: `Bearer ${token}`,
         },
       });
+
+      console.log("Home Page Response:", response);
 
       if (!response.ok) {
         const errorData = await response.json();
