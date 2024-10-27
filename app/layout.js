@@ -30,7 +30,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <Head>{/* <link rel="icon" href="/favicon.ico" /> */}</Head>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <main>
           <AnimatePresence mode="wait" initial={false}>

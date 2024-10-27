@@ -39,6 +39,74 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   const gameRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollAreaRef = useRef(null);
+  const moveAudioRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const audio = new Audio("/move-self.wav");
+      console.log("Audioooo : ", audio);
+
+      // Add loading event listener
+      audio.addEventListener("canplaythrough", () => {
+        console.log("Audio loaded successfully");
+      });
+
+      // Add error event listener
+      audio.addEventListener("error", (e) => {
+        console.error("Audio loading error:", {
+          error: e.target.error,
+          src: audio.src,
+          readyState: audio.readyState,
+        });
+      });
+
+      moveAudioRef.current = audio;
+
+      // Optional: Preload the audio
+      audio.load();
+
+      // Cleanup listeners on unmount
+      return () => {
+        audio.removeEventListener("canplaythrough", () => {});
+        audio.removeEventListener("error", () => {});
+      };
+    } catch (err) {
+      console.error("Error initializing audio:", err);
+    }
+  }, []);
+
+  const playMoveSound = () => {
+    try {
+      if (moveAudioRef.current) {
+        console.log("Attempting to play sound from:", moveAudioRef.current.src);
+        moveAudioRef.current.currentTime = 0;
+        const playPromise = moveAudioRef.current.play();
+        console.log(playPromise);
+
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio played successfully");
+            })
+            .catch((err) => {
+              console.error("Playback error:", {
+                error: err,
+                audioState: {
+                  src: moveAudioRef.current.src,
+                  readyState: moveAudioRef.current.readyState,
+                  paused: moveAudioRef.current.paused,
+                  currentTime: moveAudioRef.current.currentTime,
+                },
+              });
+            });
+        }
+      } else {
+        console.error("Audio reference is not initialized");
+      }
+    } catch (err) {
+      console.error("Error in playMoveSound:", err);
+    }
+  };
 
   // States
   const [openingDetails, setOpeningDetails] = useState(() => {
@@ -196,7 +264,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
           setIsGameOver(true);
         }
       }
-
+      playMoveSound();
       return result;
     },
     [updateGame]
@@ -239,6 +307,8 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       } else {
         const fallbackMove =
           possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        playMoveSound();
+
         return await makeAMove(fallbackMove);
       }
     } catch (error) {
@@ -323,6 +393,8 @@ export default function OpeningDetailsClient({ name, fen, id }) {
         if (!isGameOver) {
           setTimeout(handleAIMove, 1000);
         }
+        playMoveSound();
+
         return true;
       }
     },

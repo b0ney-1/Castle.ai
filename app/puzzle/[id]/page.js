@@ -25,15 +25,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 
 export default function PuzzleSolver() {
+  const router = useRouter();
   const [game, setGame] = useState(null);
   const gameRef = useRef(null);
   const messagesEndRef = useRef(null);
   const scrollAreaRef = useRef(null);
+  const moveAudioRef = useRef(null);
 
   const [puzzleData, setPuzzleData] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -54,6 +56,73 @@ export default function PuzzleSolver() {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const audio = new Audio("/move-self.wav");
+      console.log("Audioooo : ", audio);
+
+      // Add loading event listener
+      audio.addEventListener("canplaythrough", () => {
+        console.log("Audio loaded successfully");
+      });
+
+      // Add error event listener
+      audio.addEventListener("error", (e) => {
+        console.error("Audio loading error:", {
+          error: e.target.error,
+          src: audio.src,
+          readyState: audio.readyState,
+        });
+      });
+
+      moveAudioRef.current = audio;
+
+      // Optional: Preload the audio
+      audio.load();
+
+      // Cleanup listeners on unmount
+      return () => {
+        audio.removeEventListener("canplaythrough", () => {});
+        audio.removeEventListener("error", () => {});
+      };
+    } catch (err) {
+      console.error("Error initializing audio:", err);
+    }
+  }, []);
+
+  const playMoveSound = () => {
+    try {
+      if (moveAudioRef.current) {
+        console.log("Attempting to play sound from:", moveAudioRef.current.src);
+        moveAudioRef.current.currentTime = 0;
+        const playPromise = moveAudioRef.current.play();
+        console.log(playPromise);
+
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio played successfully");
+            })
+            .catch((err) => {
+              console.error("Playback error:", {
+                error: err,
+                audioState: {
+                  src: moveAudioRef.current.src,
+                  readyState: moveAudioRef.current.readyState,
+                  paused: moveAudioRef.current.paused,
+                  currentTime: moveAudioRef.current.currentTime,
+                },
+              });
+            });
+        }
+      } else {
+        console.error("Audio reference is not initialized");
+      }
+    } catch (err) {
+      console.error("Error in playMoveSound:", err);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -239,6 +308,7 @@ export default function PuzzleSolver() {
           ]);
         }
       }
+      playMoveSound();
 
       return result;
     },
