@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AnimatePresence } from "framer-motion";
 import "./globals.css";
 import { Suspense } from "react";
+import Head from "next/head";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -19,14 +20,19 @@ const geistMono = localFont({
 export const metadata = {
   title: "Castle.ai",
   description: "Your move, powered by AI",
+  icons: {
+    icon: "./favicon.ico",
+    shortcut: "./favicon.ico",
+    apple: "./favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-      </head>
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <main>
           <AnimatePresence mode="wait" initial={false}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -58,6 +58,74 @@ function Play() {
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [quickSave, setQuickSave] = useState(null);
   const [movesSinceQuickSave, setMovesSinceQuickSave] = useState(0);
+  const moveAudioRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const audio = new Audio("/move-self.wav");
+      console.log("Audioooo : ", audio);
+
+      // Add loading event listener
+      audio.addEventListener("canplaythrough", () => {
+        console.log("Audio loaded successfully");
+      });
+
+      // Add error event listener
+      audio.addEventListener("error", (e) => {
+        console.error("Audio loading error:", {
+          error: e.target.error,
+          src: audio.src,
+          readyState: audio.readyState,
+        });
+      });
+
+      moveAudioRef.current = audio;
+
+      // Optional: Preload the audio
+      audio.load();
+
+      // Cleanup listeners on unmount
+      return () => {
+        audio.removeEventListener("canplaythrough", () => {});
+        audio.removeEventListener("error", () => {});
+      };
+    } catch (err) {
+      console.error("Error initializing audio:", err);
+    }
+  }, []);
+
+  const playMoveSound = () => {
+    try {
+      if (moveAudioRef.current) {
+        console.log("Attempting to play sound from:", moveAudioRef.current.src);
+        moveAudioRef.current.currentTime = 0;
+        const playPromise = moveAudioRef.current.play();
+        console.log(playPromise);
+
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio played successfully");
+            })
+            .catch((err) => {
+              console.error("Playback error:", {
+                error: err,
+                audioState: {
+                  src: moveAudioRef.current.src,
+                  readyState: moveAudioRef.current.readyState,
+                  paused: moveAudioRef.current.paused,
+                  currentTime: moveAudioRef.current.currentTime,
+                },
+              });
+            });
+        }
+      } else {
+        console.error("Audio reference is not initialized");
+      }
+    } catch (err) {
+      console.error("Error in playMoveSound:", err);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -74,7 +142,6 @@ function Play() {
       }
     }
 
-    // fix this later
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = "";
@@ -326,6 +393,7 @@ function Play() {
         );
         return false;
       }
+      playMoveSound();
       setTimeout(handleAIMove, 300);
       setMovesSinceQuickSave((prevMoves) => prevMoves + 1);
       return true;
@@ -456,12 +524,14 @@ Return ONLY the move in standard algebraic notation, without any additional text
       if (possibleMoves.includes(aiMove)) {
         console.log("Selected AI move:", aiMove);
         makeAMove(aiMove);
+        playMoveSound();
       } else {
         console.error("Invalid AI move received:", aiMove);
         const fallbackMove =
           possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
         console.log("Falling back to:", fallbackMove);
         makeAMove(fallbackMove);
+        playMoveSound();
       }
     } catch (error) {
       console.error("Error getting AI move:", error);
@@ -569,11 +639,11 @@ Return ONLY the move in standard algebraic notation, without any additional text
     >
       {toast && (
         <div
-          className={`fixed top-20 right-4 p-4 rounded-md shadow-md bg-white border-2 ${
+          className={`fixed top-20 right-4 p-4 rounded-md shadow-md bg-white dark:bg-black border-2 ${
             toast.variant === "destructive"
-              ? "border-red-500"
-              : "border-blue-500"
-          } text-black z-50`}
+              ? "border-grey-500"
+              : "border-grey-500"
+          } text-black dark:text-white z-50`}
         >
           <h4 className="font-bold ">{toast.title}</h4>
           <p>{toast.description}</p>
