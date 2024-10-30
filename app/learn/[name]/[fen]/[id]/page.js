@@ -1,7 +1,7 @@
 import OpeningDetailsClient from "./OpeningDetailsClient";
 import { use } from "react";
 
-// This should be async to properly handle dynamic params
+// Async function to unwrap dynamic route parameters
 async function getParams(params) {
   const { name, fen, id } = await params;
 
@@ -12,6 +12,7 @@ async function getParams(params) {
   };
 }
 
+// Main page component that renders OpeningDetailsClient with dynamic params
 export default async function Page({ params }) {
   const unwrappedParams = await getParams(params);
 

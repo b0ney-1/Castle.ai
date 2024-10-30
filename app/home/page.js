@@ -30,23 +30,23 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set component as mounted and check for user ID
     setMounted(true);
     const id = searchParams.get("id");
     if (id) {
-      console.log("Token present");
-      fetchUserData(id);
+      fetchUserData(id); // Fetch user data if ID is present
     } else {
       const token = localStorage.getItem("jwtToken");
+      // Redirect to root if no token is found
       if (!token) {
-        console.log("Should push to root");
         router.push("/");
       } else {
-        console.log("Token present");
-        fetchUserData(id);
+        fetchUserData(id); // Fetch user data if token exists
       }
     }
   }, [searchParams, router]);
 
+  // Fetch user data based on provided ID
   const fetchUserData = async (id) => {
     try {
       const token = localStorage.getItem("jwtToken");
@@ -62,8 +62,6 @@ function Dashboard() {
         },
       });
 
-      console.log("Home Page Response:", response);
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch user data");
@@ -74,12 +72,13 @@ function Dashboard() {
       setUserId(id);
       setIsLoading(false);
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      // Redirect to root if there's an error fetching user data
       localStorage.removeItem("jwtToken");
       router.push("/");
     }
   };
 
+  // Handle image load to manage loading state per image
   const handleImageLoad = (section) => {
     setImagesLoaded((prev) => ({
       ...prev,
@@ -87,13 +86,16 @@ function Dashboard() {
     }));
   };
 
+  // Sign out by clearing token and redirecting to root
   const handleSignOut = () => {
     localStorage.removeItem("jwtToken");
     router.push("/");
   };
 
+  // Avoid rendering until component is mounted to prevent hydration issues
   if (!mounted) return null;
 
+  // Card data for different sections
   const cards = [
     {
       href: `/play?id=${userId}`,
@@ -131,6 +133,7 @@ function Dashboard() {
           Castle.ai
         </div>
         <div className="flex items-center space-x-4">
+          {/* Toggle theme button */}
           <Button
             variant="ghost"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -141,11 +144,12 @@ function Dashboard() {
               <Sun className="h-5 w-5" />
             )}
           </Button>
+          {/* User dropdown menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="text-lg font-semibold  dark:text-white text-black"
+                className="text-lg font-semibold dark:text-white text-black"
               >
                 {isLoading ? <Skeleton className="h-6 w-24" /> : username}
               </Button>
@@ -159,6 +163,7 @@ function Dashboard() {
         </div>
       </nav>
 
+      {/* Render cards for each section */}
       <div className="flex-grow flex items-center justify-center">
         <div className="container mx-auto px-4">
           <div className="flex justify-center space-x-12">

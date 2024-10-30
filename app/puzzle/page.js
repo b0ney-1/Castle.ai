@@ -36,6 +36,7 @@ export default function PuzzleGallery() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+  // Sets initial user data on component mount
   useEffect(() => {
     setMounted(true);
     const id = localStorage.getItem("userId");
@@ -45,6 +46,7 @@ export default function PuzzleGallery() {
     }
   }, []);
 
+  // Fetches user data based on user ID
   const fetchUserData = async (id) => {
     try {
       const response = await fetch(`/api/user?id=${id}`, {
@@ -62,6 +64,7 @@ export default function PuzzleGallery() {
     }
   };
 
+  // Fetches puzzle data for the carousel display
   useEffect(() => {
     setIsLoading(true);
     fetch("/api/puzzles")
@@ -76,19 +79,19 @@ export default function PuzzleGallery() {
       });
   }, []);
 
+  // Handles puzzle selection and navigates to the puzzle page
   const handlePuzzleSelect = (puzzle) => {
-    console.log("Selected puzzle:", puzzle);
-
     const encodedData = encodeURIComponent(JSON.stringify(puzzle));
-    // router.push(`/puzzle/${puzzleFen}`);
     router.replace(`/puzzle/${puzzle.gameId}?data=${encodedData}`);
   };
 
+  // Signs the user out and redirects to the login page
   const handleSignOut = () => {
     localStorage.removeItem("jwtToken");
     router.push("/");
   };
 
+  // Renders a loading skeleton for the carousel while data is being fetched
   const LoadingSkeleton = () => (
     <CarouselContent className="h-full">
       {[1, 2, 3].map((index) => (
@@ -111,6 +114,7 @@ export default function PuzzleGallery() {
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
+      {/* Navigation */}
       <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black ">
         <div className="text-2xl font-bold text-black dark:text-white">
           Castle.ai
@@ -151,6 +155,7 @@ export default function PuzzleGallery() {
         </div>
       </nav>
 
+      {/* Puzzle Carousel */}
       <div className="flex-1 flex flex-col justify-center items-center pt-8 pb-12 px-6 ">
         <h1 className="text-3xl font-bold mb-8  text-black dark:text-white">
           Puzzles

@@ -46,7 +46,6 @@ export default function Learn() {
   const [game, setGame] = useState(new Chess());
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [toast, setToast] = useState(null);
   const [selection, setSelection] = useState({
     name: "Select an Opening to learn",
     fen: "start",
@@ -57,6 +56,7 @@ export default function Learn() {
   const [mounted, setMounted] = useState(false);
   const [isLoadingOpenings, setIsLoadingOpenings] = useState(true);
 
+  // Fetch the list of openings from the server
   const fetchOpenings = useCallback(async (currentPage) => {
     setIsLoadingOpenings(true);
     try {
@@ -65,15 +65,16 @@ export default function Learn() {
       );
       const data = await res.json();
       setOpenings(data.openings);
-      setTotalPages(100);
+      setTotalPages(100); // Set total pages for pagination
     } catch (error) {
       console.error("Error fetching openings:", error);
-      setTotalPages(1);
+      setTotalPages(1); // Handle fetch error with fallback pagination
     } finally {
-      setIsLoadingOpenings(false); // Set loading to false when fetch completes
+      setIsLoadingOpenings(false);
     }
   }, []);
 
+  // Initialize component on mount and fetch user and opening data
   useEffect(() => {
     setMounted(true);
     const id = searchParams.get("id");
@@ -87,6 +88,7 @@ export default function Learn() {
     fetchOpenings(currentPage);
   }, [searchParams, fetchOpenings]);
 
+  // Fetch user data based on user ID
   const fetchUserData = async (id) => {
     try {
       const token = localStorage.getItem("jwtToken");
@@ -106,6 +108,7 @@ export default function Learn() {
     }
   };
 
+  // Handle page changes for pagination
   const handlePageChange = useCallback(
     (newPage) => {
       setPage(newPage);
@@ -115,10 +118,12 @@ export default function Learn() {
     [userId, router, fetchOpenings]
   );
 
+  // Update the chessboard with a new game state
   const handleGameChange = (newGame) => {
     setGame(new Chess(newGame.fen()));
   };
 
+  // Handle clicking on an opening to view its details
   const handleOpeningClick = (opening) => {
     const encodedName = encodeURIComponent(opening.name);
     const encodedFen = encodeURIComponent(opening.fen);
@@ -128,16 +133,13 @@ export default function Learn() {
     );
   };
 
+  // Sign out the user and redirect to home
   const handleSignOut = () => {
     localStorage.removeItem("jwtToken");
     router.push("/");
   };
 
-  const showToast = (title, description, variant = "default") => {
-    setToast({ title, description, variant });
-    setTimeout(() => setToast(null), 3000);
-  };
-
+  // Loading skeleton for openings grid
   const OpeningsGridSkeleton = () => (
     <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
       {[...Array(10)].map((_, index) => (
@@ -152,9 +154,9 @@ export default function Learn() {
   );
 
   if (!mounted) {
+    // Display loading skeleton while component is mounting
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
-        {/* Navigation Bar Skeleton */}
         <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
           <Skeleton className="h-8 w-24" />
           <div className="flex items-center space-x-4">
@@ -171,27 +173,16 @@ export default function Learn() {
             </div>
 
             {/* Openings Grid Skeleton */}
-            <div className="w-full md:w-1/2 flex flex-col">
-              <div className="p-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 overflow-y-auto max-h-[calc(100vh-350px)]">
-                {[...Array(10)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-white dark:bg-black shadow rounded-lg p-2 border-2 border-gray-300 dark:border-gray-700"
-                  >
-                    <Skeleton className="h-16 w-full" />
-                  </div>
-                ))}
-              </div>
+            <OpeningsGridSkeleton />
 
-              {/* Pagination Skeleton */}
-              <div className="mt-auto flex justify-center">
-                <div className="flex items-center space-x-2">
-                  <Skeleton className="h-10 w-10 rounded-lg" />
-                  {[...Array(5)].map((_, index) => (
-                    <Skeleton key={index} className="h-10 w-10 rounded-lg" />
-                  ))}
-                  <Skeleton className="h-10 w-10 rounded-lg" />
-                </div>
+            {/* Pagination Skeleton */}
+            <div className="mt-auto flex justify-center">
+              <div className="flex items-center space-x-2">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+                {[...Array(5)].map((_, index) => (
+                  <Skeleton key={index} className="h-10 w-10 rounded-lg" />
+                ))}
+                <Skeleton className="h-10 w-10 rounded-lg" />
               </div>
             </div>
           </div>
@@ -249,8 +240,10 @@ export default function Learn() {
         </div>
       </nav>
 
+      {/* Main Content Area */}
       <div className="flex-grow flex items-center justify-center p-6">
         <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto gap-8">
+          {/* Chessboard */}
           <div className="w-full md:w-1/2 flex items-center justify-center">
             <Chessboard
               id="BasicBoard"
@@ -259,6 +252,8 @@ export default function Learn() {
               onMove={() => handleGameChange(game)}
             />
           </div>
+
+          {/* Openings Grid */}
           <div className="w-full md:w-1/2 flex flex-col">
             {isLoadingOpenings ? (
               <OpeningsGridSkeleton />
@@ -269,19 +264,8 @@ export default function Learn() {
                     key={`${opening.id}_${index}`}
                     className="bg-white dark:bg-black dark:text-white text-black shadow rounded-lg p-2 transition-transform hover:scale-105 hover:shadow-lg cursor-pointer border-2 border-gray-300 dark:border-gray-700"
                     onClick={() => handleOpeningClick(opening)}
-                    onMouseEnter={() => {
-                      try {
-                        const newGame = new Chess(opening.fen);
-                        handleGameChange(newGame);
-                        console.log(
-                          "!!!!!!!!!!!!!!!!! OPening content : " + opening._id
-                        );
-                      } catch (error) {
-                        console.error(error);
-                      }
-                    }}
                   >
-                    <h3 className="text-md font-medium mb-2 dark:text-white ">
+                    <h3 className="text-md font-medium mb-2 dark:text-white">
                       {opening.name.length > 50
                         ? `${opening.name.slice(0, 47)}...`
                         : opening.name}
@@ -290,14 +274,15 @@ export default function Learn() {
                 ))}
               </div>
             )}
-            <Pagination className="mt-auto  dark:text-white text-black">
+
+            {/* Pagination Component */}
+            <Pagination className="mt-auto dark:text-white text-black">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => handlePageChange(Math.max(0, page - 1))}
-                    className={`${
-                      page === 0 ? "pointer-events-none opacity-50" : ""
-                    } dark:text-white text-black`}
+                    className={`${page === 0 ? "pointer-events-none opacity-50" : ""
+                      } dark:text-white text-black`}
                   />
                 </PaginationItem>
                 {totalPages > 0 &&
@@ -312,11 +297,9 @@ export default function Learn() {
                           <PaginationLink
                             onClick={() => handlePageChange(pageNumber)}
                             isActive={page === pageNumber}
-                            className={
-                              page === pageNumber
-                                ? `bg-white dark:bg-black border-black dark:border-white dark:text-white text-black`
-                                : ""
-                            }
+                            className={page === pageNumber
+                              ? `bg-white dark:bg-black border-black dark:border-white dark:text-white text-black`
+                              : ""}
                           >
                             {pageNumber + 1}
                           </PaginationLink>
@@ -333,9 +316,8 @@ export default function Learn() {
                     onClick={() =>
                       handlePageChange(Math.min(totalPages - 1, page + 1))
                     }
-                    className={`${
-                      page === 0 ? "pointer-events-none opacity-50" : ""
-                    } dark:text-white text-black`}
+                    className={`${page === 0 ? "pointer-events-none opacity-50" : ""
+                      } dark:text-white text-black`}
                   />
                 </PaginationItem>
               </PaginationContent>

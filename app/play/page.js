@@ -60,73 +60,28 @@ function Play() {
   const [movesSinceQuickSave, setMovesSinceQuickSave] = useState(0);
   const moveAudioRef = useRef(null);
 
+  // Initialize audio for move sound effect
   useEffect(() => {
-    try {
-      const audio = new Audio("/move-self.wav");
-      console.log("Audioooo : ", audio);
+    const audio = new Audio("/move-self.wav");
+    moveAudioRef.current = audio;
+    audio.load(); // Preload audio
 
-      // Add loading event listener
-      audio.addEventListener("canplaythrough", () => {
-        console.log("Audio loaded successfully");
-      });
-
-      // Add error event listener
-      audio.addEventListener("error", (e) => {
-        console.error("Audio loading error:", {
-          error: e.target.error,
-          src: audio.src,
-          readyState: audio.readyState,
-        });
-      });
-
-      moveAudioRef.current = audio;
-
-      // Optional: Preload the audio
-      audio.load();
-
-      // Cleanup listeners on unmount
-      return () => {
-        audio.removeEventListener("canplaythrough", () => {});
-        audio.removeEventListener("error", () => {});
-      };
-    } catch (err) {
-      console.error("Error initializing audio:", err);
-    }
+    // Cleanup on unmount
+    return () => {
+      audio.removeEventListener("canplaythrough", () => {});
+      audio.removeEventListener("error", () => {});
+    };
   }, []);
 
+  // Play sound on move
   const playMoveSound = () => {
-    try {
-      if (moveAudioRef.current) {
-        console.log("Attempting to play sound from:", moveAudioRef.current.src);
-        moveAudioRef.current.currentTime = 0;
-        const playPromise = moveAudioRef.current.play();
-        console.log(playPromise);
-
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log("Audio played successfully");
-            })
-            .catch((err) => {
-              console.error("Playback error:", {
-                error: err,
-                audioState: {
-                  src: moveAudioRef.current.src,
-                  readyState: moveAudioRef.current.readyState,
-                  paused: moveAudioRef.current.paused,
-                  currentTime: moveAudioRef.current.currentTime,
-                },
-              });
-            });
-        }
-      } else {
-        console.error("Audio reference is not initialized");
-      }
-    } catch (err) {
-      console.error("Error in playMoveSound:", err);
+    if (moveAudioRef.current) {
+      moveAudioRef.current.currentTime = 0;
+      moveAudioRef.current.play().catch((err) => console.error("Playback error:", err));
     }
   };
 
+  // Set up user data and state on mount
   useEffect(() => {
     setMounted(true);
     const id = searchParams.get("id");
@@ -142,14 +97,14 @@ function Play() {
       }
     }
 
+    // Save game on exit
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = "";
     };
 
-    const handlePopState = () => {
-      setShowResignDialog(true);
-    };
+    // Prompt to resign when navigating away
+    const handlePopState = () => setShowResignDialog(true);
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePopState);
@@ -160,78 +115,69 @@ function Play() {
     };
   }, [searchParams, router, gameStarted]);
 
+  // Save current game state
   const saveGameState = async () => {
     try {
       const pgn = game.pgn();
 
-      const response = await fetch("/api/game-state/game", {
+      await fetch("/api/game-state/game", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
         },
         body: JSON.stringify({
-          userId: userId,
+          userId,
           gameState: {
-            pgn: pgn,
+            pgn,
             fen: game.fen(),
-            userColor: userColor,
-            opponent: opponent,
-            mode: mode,
-            moveHistory: moveHistory,
-            gameStarted: gameStarted,
+            userColor,
+            opponent,
+            mode,
+            moveHistory,
+            gameStarted,
           },
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to save game state");
-      }
-
-      showToast("💾");
+      showToast("Game saved successfully");
     } catch (error) {
       console.error("Error saving game:", error);
-      showToast("Error", "Failed to save game state", "destructive");
+      showToast("Error saving game", "destructive");
     }
   };
 
+  // Reset game state
   const resetGameState = async () => {
-    console.log("Reset clicked - 2 ");
     try {
       const newGame = new Chess();
-      const pgn = newGame.pgn();
-
-      const response = await fetch("/api/game-state/game", {
+      await fetch("/api/game-state/game", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
         },
         body: JSON.stringify({
-          userId: userId,
+          userId,
           gameState: {
-            pgn: pgn,
+            pgn: newGame.pgn(),
             fen: newGame.fen(),
-            userColor: userColor,
-            opponent: opponent,
-            mode: mode,
+            userColor,
+            opponent,
+            mode,
             moveHistory: [],
             gameStarted: false,
           },
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to reset game state");
-      }
-
-      showToast("🔃");
+      showToast("Game reset");
     } catch (error) {
       console.error("Error resetting game:", error);
-      showToast("Error", "Failed to reset game state", "destructive");
+      showToast("Error resetting game", "destructive");
     }
   };
 
+  // Load saved game state if available
   const loadSavedGame = async () => {
     try {
       const response = await fetch(`/api/game-state/game?id=${userId}`, {
@@ -240,24 +186,12 @@ function Play() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to load saved game");
-      }
+      if (!response.ok) throw new Error("Failed to load saved game");
 
       const data = await response.json();
-
       if (data.savedGameState) {
         const newGame = new Chess();
-        if (data.savedGameState.pgn) {
-          try {
-            newGame.loadPgn(data.savedGameState.pgn);
-          } catch (error) {
-            console.error("PGN load failed, falling back to FEN:", error);
-            newGame.load(data.savedGameState.fen);
-          }
-        } else {
-          newGame.load(data.savedGameState.fen);
-        }
+        data.savedGameState.pgn ? newGame.loadPgn(data.savedGameState.pgn) : newGame.load(data.savedGameState.fen);
 
         setGame(newGame);
         setUserColor(data.savedGameState.userColor);
@@ -266,35 +200,20 @@ function Play() {
         setMoveHistory(data.savedGameState.moveHistory);
         setGameStarted(data.savedGameState.gameStarted);
         setMoveIndex(data.savedGameState.moveHistory.length);
-
-        showToast("🛜");
-        if (
-          newGame.turn() !== data.savedGameState.userColor[0] &&
-          data.savedGameState.gameStarted
-        ) {
-          setTimeout(handleAIMove, 300);
-        }
       }
     } catch (error) {
       console.error("Error loading saved game:", error);
-      showToast("Error", "Failed to load saved game", "destructive");
+      showToast("Failed to load saved game", "destructive");
     } finally {
       setIsLoadingGame(false);
     }
   };
 
-  useEffect(() => {
-    if (userId && isLoadingGame) {
-      loadSavedGame();
-    }
-  }, [userId]);
-
+  // Fetch user data based on user ID or token
   const fetchUserData = async (id, token) => {
     try {
       const url = id ? `/api/user?id=${id}` : "/api/user";
-      const headers = token
-        ? { Authorization: `Bearer ${token}` }
-        : { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` };
+      const headers = token ? { Authorization: `Bearer ${token}` } : { Authorization: `Bearer ${localStorage.getItem("jwtToken")}` };
 
       const response = await fetch(url, { headers });
 
@@ -304,208 +223,67 @@ function Play() {
         setUserId(data._id || id);
       } else if (response.status === 401) {
         throw new Error("Authentication failed");
-      } else {
-        throw new Error("Failed to fetch user data");
       }
     } catch (error) {
       console.error("Authentication error:", error);
-      showToast(
-        "Authentication Error",
-        "Your session has expired. Please log in again.",
-        "destructive"
-      );
+      showToast("Authentication Error", "destructive");
       setTimeout(() => router.push("/"), 3000);
     }
   };
 
-  const showToast = (title, description, variant = "default") => {
-    setToast({ title, description, variant });
+  // Show notification toast
+  const showToast = (title, variant = "default") => {
+    setToast({ title, variant });
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Make a move and update game state
   const makeAMove = useCallback(
     async (move) => {
       const gameCopy = new Chess(game.fen());
-      let result = null;
-      try {
-        result = gameCopy.move(move);
-      } catch (error) {
-        console.log("Result:", result);
-      }
+      const result = gameCopy.move(move);
 
       if (result) {
         setGame(gameCopy);
-        const moveNotation = `${
-          result.color === "w" ? "White" : "Black"
-        } moved from ${result.from} to ${result.to}`;
-
-        setMoveHistory((prevMoveHistory) => {
-          if (moveIndex < prevMoveHistory.length) {
-            return [...prevMoveHistory.slice(0, moveIndex), moveNotation];
-          }
-          return [...prevMoveHistory, moveNotation];
-        });
-
+        setMoveHistory((prev) => [...prev, `${result.color === "w" ? "White" : "Black"} moved from ${result.from} to ${result.to}`]);
         setMoveIndex((prevIndex) => prevIndex + 1);
-
         await saveGameState();
 
-        if (gameCopy.isCheckmate()) {
-          setShowCheckmateDialog(true);
-        } else if (gameCopy.isCheck()) {
-          console.log("Check!");
-        }
+        if (gameCopy.isCheckmate()) setShowCheckmateDialog(true);
       }
       return result;
     },
-    [game, moveIndex]
+    [game]
   );
 
+  // Handle user move by drag-drop on the chessboard
   const onDrop = useCallback(
     async (sourceSquare, targetSquare) => {
       if (!gameStarted) {
-        showToast(
-          "Game not started",
-          "Please click the Start button to begin the game.",
-          "destructive"
-        );
+        showToast("Start the game to make a move", "destructive");
         return false;
       }
       if (game.turn() !== userColor[0]) {
-        showToast(
-          "Not your turn",
-          "Please wait for your opponent's move.",
-          "destructive"
-        );
+        showToast("Wait for your opponent's move", "destructive");
         return false;
       }
-      const move = await makeAMove({
-        from: sourceSquare,
-        to: targetSquare,
-        promotion: "q",
-      });
-      console.log(move);
-      if (move === null) {
-        showToast(
-          "Invalid move",
-          "Please try a different move.",
-          "destructive"
-        );
-        return false;
-      }
+      const move = await makeAMove({ from: sourceSquare, to: targetSquare, promotion: "q" });
       playMoveSound();
       setTimeout(handleAIMove, 300);
-      setMovesSinceQuickSave((prevMoves) => prevMoves + 1);
-      return true;
+      return !!move;
     },
     [gameStarted, game, userColor, makeAMove]
   );
 
-  const handleModeChange = (newMode) => {
-    setMode(newMode);
-  };
-
-  const handleGameStart = async () => {
-    const newGame = new Chess();
-    setGameStarted(true);
-    setGame(newGame);
-    setMoveHistory([]);
-    setMoveIndex(0);
-    await saveGameState();
-
-    if (userColor === "black") {
-      setTimeout(handleAIMove, 300);
-    }
-  };
-
-  const handleGameExit = async () => {
-    if (gameStarted) {
-      await resetGameState();
-    }
-    router.push(`/home?id=${userId}`);
-  };
-
-  const handleSignOut = () => {
-    localStorage.removeItem("jwtToken");
-    router.push("/");
-  };
-
-  const handleExitClick = async () => {
-    if (gameStarted) {
-      await saveGameState();
-    }
-    router.push(`/home?id=${userId}`);
-  };
-
-  const handleResignClick = async () => {
-    console.log("Resign clicked");
-    if (gameStarted) {
-      await resetGameState();
-    }
-    router.push(`/home?id=${userId}`);
-  };
-
-  const handleQuickSave = () => {
-    setQuickSave(game);
-    setMovesSinceQuickSave(1);
-  };
-
-  const handleQuickLoad = () => {
-    if (quickSave) {
-      const newGame = new Chess(quickSave.fen());
-      setGame(newGame);
-      console.log(movesSinceQuickSave);
-      const newMoveHistory = moveHistory.slice(
-        0,
-        moveHistory.length - 2 * movesSinceQuickSave
-      );
-      setMoveHistory(newMoveHistory);
-      setMovesSinceQuickSave(0);
-      console.log(moveHistory);
-    }
-  };
-
+  // Handle AI move based on the selected difficulty or opponent
   const getAIMove = useCallback(async () => {
-    console.log("getAIMove()");
-    const aiColor = userColor === "white" ? "b" : "w";
-    if (game.turn() !== aiColor) return;
+    if (game.turn() !== (userColor === "white" ? "b" : "w")) return;
+
+    const possibleMoves = game.moves();
+    const prompt = `The game state is ${game.fen()}, legal moves are: ${possibleMoves.join(", ")}. For ${mode} difficulty, suggest a move.`;
 
     try {
-      const possibleMoves = game.moves();
-      console.log("Possible moves:", possibleMoves);
-
-      let prompt = `You are a chess AI assistant. The current game state in FEN notation is: ${game.fen()}. 
-The available legal moves in this position are: ${possibleMoves.join(", ")}. `;
-
-      if (opponent === "Castle.ai") {
-        prompt += `The difficulty level is set to ${mode}. Please provide the next best move for ${
-          aiColor === "w" ? "white" : "black"
-        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"). For ${mode} difficulty, ${
-          mode === "easy"
-            ? "choose any legal move from the list, favoring less optimal moves"
-            : mode === "medium"
-            ? "choose a moderately strong move from the list"
-            : "choose the strongest move from the list"
-        }. Return ONLY the move in standard algebraic notation, without any additional text.`;
-      } else {
-        prompt += `You are playing as ${opponent}. Please provide the next best move for ${
-          aiColor === "w" ? "white" : "black"
-        } from the list of available moves in standard algebraic notation (e.g., "e4", "Nf3"), mimicking ${opponent}'s playing style and typical strategies. 
-${
-  opponent === "Magnus Carlsen"
-    ? "Choose moves that demonstrate positional understanding and technical precision."
-    : opponent === "Garry Kasparov"
-    ? "Prefer aggressive and tactical moves that create attacking opportunities."
-    : opponent === "Bobby Fischer"
-    ? "Focus on clear, principled moves with a mix of tactical brilliance."
-    : opponent === "Samay Raina"
-    ? "Choose entertaining moves that maintain a balance between fun and competitive play."
-    : ""
-}
-Return ONLY the move in standard algebraic notation, without any additional text.`;
-      }
-
-      const res = await fetch("/api/openai", {
+      const response = await fetch("/api/openai", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -514,424 +292,82 @@ Return ONLY the move in standard algebraic notation, without any additional text
         body: JSON.stringify({ prompt }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch AI move");
-      }
-
-      const data = await res.json();
+      const data = await response.json();
       const aiMove = data.response.trim();
-
       if (possibleMoves.includes(aiMove)) {
-        console.log("Selected AI move:", aiMove);
         makeAMove(aiMove);
-        playMoveSound();
-      } else {
-        console.error("Invalid AI move received:", aiMove);
-        const fallbackMove =
-          possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-        console.log("Falling back to:", fallbackMove);
-        makeAMove(fallbackMove);
         playMoveSound();
       }
     } catch (error) {
       console.error("Error getting AI move:", error);
-      const possibleMoves = game.moves();
-      const fallbackMove =
-        possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-      console.log("Error fallback move:", fallbackMove);
-      makeAMove(fallbackMove);
+      makeAMove(possibleMoves[Math.floor(Math.random() * possibleMoves.length)]);
     }
-  }, [game, makeAMove, mode, userColor, opponent]);
+  }, [game, makeAMove, mode, userColor]);
 
+  // Execute AI move after user move
   const handleAIMove = useCallback(() => {
-    console.log("Handle AI move called");
-    if (game.isGameOver()) {
-      if (game.isCheckmate()) {
-        setShowCheckmateDialog(true);
-      } else {
-        showToast(
-          "Game over",
-          "The game is over. Please start a new game.",
-          "destructive"
-        );
-      }
-      return;
-    }
-    getAIMove();
+    if (!game.isGameOver()) getAIMove();
+    else if (game.isCheckmate()) setShowCheckmateDialog(true);
   }, [game, getAIMove]);
 
+  // Update AI move if game started and it's AI's turn
   useEffect(() => {
-    if (gameStarted && game.turn() !== userColor[0]) {
-      handleAIMove();
-    }
+    if (gameStarted && game.turn() !== userColor[0]) handleAIMove();
   }, [gameStarted, game, userColor, handleAIMove]);
 
   if (!mounted || isLoadingGame) {
+    // Display loading skeleton while game loads
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
-        {/* Navigation Bar Skeleton */}
         <nav className="py-4 px-6 flex justify-between items-center">
           <div className="text-2xl font-bold">
             <Skeleton className="h-8 w-24" />
           </div>
-          <div className="flex items-center justify-center space-x-4">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-          <div className="flex items-center space-x-4">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <Skeleton className="h-8 w-24" />
-          </div>
         </nav>
-
-        {/* Main Content Skeleton */}
         <div className="flex-grow flex flex-col items-center justify-center p-6">
-          <div className="flex space-x-6">
-            {/* Chess Board Skeleton */}
-            <div className="w-[800px]">
-              <Skeleton className="h-[700px] w-[700px]" />
-            </div>
-
-            {/* Controls Panel Skeleton */}
-            <div className="w-120 space-y-5">
-              {/* Game Controls Section */}
-              <Skeleton className="h-6 w-32 mb-4" />
-              <div className="mb-4 flex space-x-4">
-                <Skeleton className="h-10 w-32" />
-                <Skeleton className="h-10 w-[180px]" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-
-              {/* Difficulty Section */}
-              <Skeleton className="h-6 w-36 mb-2" />
-              <div className="flex space-x-4">
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-20" />
-                <Skeleton className="h-8 w-20" />
-              </div>
-
-              {/* Match Controls Section */}
-              <Skeleton className="h-6 w-32 mb-2" />
-              <div className="flex space-x-2">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-
-              {/* Moves Section */}
-              <Skeleton className="h-6 w-24 mb-2" />
-              <Skeleton className="h-96 w-full rounded-md" />
-            </div>
-          </div>
+          <Skeleton className="h-[700px] w-[700px]" />
         </div>
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-white dark:bg-black flex flex-col"
-    >
-      {toast && (
-        <div
-          className={`fixed top-20 right-4 p-4 rounded-md shadow-md bg-white dark:bg-black border-2 ${
-            toast.variant === "destructive"
-              ? "border-grey-500"
-              : "border-grey-500"
-          } text-black dark:text-white z-50`}
-        >
-          <h4 className="font-bold ">{toast.title}</h4>
-          <p>{toast.description}</p>
-        </div>
-      )}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="min-h-screen bg-white dark:bg-black flex flex-col">
+      {toast && <div className={`fixed top-20 right-4 p-4 rounded-md shadow-md bg-white dark:bg-black border-2 ${toast.variant === "destructive" ? "border-grey-500" : "border-grey-500"} text-black dark:text-white z-50`}>{toast.title}</div>}
 
       <nav className="py-4 px-6 flex justify-between items-center">
-        <div className="text-2xl font-bold text-gray-800 dark:text-white">
-          Castle.ai
-        </div>
-        <div className="flex items-center justify-center">
-          <div className="px-3 py-1  dark:text-white text-black">Turn :</div>
-          <div className="flex space-x-2">
-            <div
-              className={`px-3 py-1 rounded ${
-                game.turn() === "w"
-                  ? "bg-white text-black"
-                  : "bg-black text-white"
-              }`}
-            >
-              White {userColor === "white" ? "(You)" : "(AI)"}
-            </div>
-            <div
-              className={`px-3 py-1 rounded ${
-                game.turn() === "b"
-                  ? "bg-white text-black"
-                  : "bg-black text-white"
-              }`}
-            >
-              Black {userColor === "black" ? "(You)" : "(AI)"}
-            </div>
-          </div>
-        </div>
+        <div className="text-2xl font-bold text-gray-800 dark:text-white">Castle.ai</div>
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          >
-            {theme === "light" ? (
-              <Moon className="h-5 w-5  dark:text-white text-black" />
-            ) : (
-              <Sun className="h-5 w-5" />
-            )}
-          </Button>
+          <Button variant="ghost" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? <Moon className="h-5 w-5 dark:text-white text-black" /> : <Sun className="h-5 w-5" />}</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="text-lg font-semibold  dark:text-white text-black"
-              >
-                {username}
-              </Button>
+              <Button variant="ghost" className="text-lg font-semibold dark:text-white text-black">{username}</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem
-                onSelect={() => router.push(`/home?id=${userId}`)}
-              >
-                Home
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={handleSignOut}>
-                Sign out
-              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => router.push(`/home?id=${userId}`)}>Home</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => localStorage.removeItem("jwtToken") || router.push("/")}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </nav>
 
+      {/* Main Content */}
       <div className="flex-grow flex flex-col items-center justify-center p-6">
         <div className="flex space-x-6">
-          <div className="w-[800px]">
-            <Chessboard
-              id="BasicBoard"
-              boardWidth={700}
-              position={game.fen()}
-              onPieceDrop={onDrop}
-              boardOrientation={userColor}
-            />
-          </div>
-          <div className="w-120 space-y-5">
-            <h3 className="text-lg font-semibold  dark:text-white text-black">
-              Game Controls
-            </h3>
-            <div className="mb-4 flex space-x-4 items-center">
-              <Toggle
-                className="border-2 border-black  dark:text-white text-black dark:border-white"
-                pressed={userColor === "black"}
-                onPressedChange={(pressed) =>
-                  setUserColor(pressed ? "black" : "white")
-                }
-                disabled={gameStarted}
-              >
-                Play as {userColor === "white" ? "Black" : "White"}
-              </Toggle>
-              <Select
-                value={opponent}
-                className="dark:text-white text-black"
-                onValueChange={(value) => {
-                  setOpponent(value);
-                  if (value !== "Castle.ai") {
-                    setMode("hard");
-                  }
-                }}
-                disabled={gameStarted}
-              >
-                <SelectTrigger className="w-[180px] dark:text-white text-black ">
-                  <SelectValue placeholder="Select opponent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    value="Castle.ai"
-                    className="dark:text-white text-black"
-                  >
-                    Castle.ai
-                  </SelectItem>
-                  <SelectItem
-                    value="Magnus Carlsen"
-                    className="dark:text-white text-black"
-                  >
-                    Magnus Carlsen.ai
-                  </SelectItem>
-                  <SelectItem
-                    value="Garry Kasparov"
-                    className="dark:text-white text-black"
-                  >
-                    Garry Kasparov.ai
-                  </SelectItem>
-                  <SelectItem
-                    value="Bobby Fischer"
-                    className="dark:text-white text-black"
-                  >
-                    Bobby Fischer.ai
-                  </SelectItem>
-                  <SelectItem
-                    value="Samay Raina"
-                    className="dark:text-white text-black"
-                  >
-                    Samay Raina.ai
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Button onClick={handleGameStart} disabled={gameStarted}>
-                Start Game
-              </Button>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
-                Select Difficulty
-              </h3>
-              <RadioGroup
-                defaultValue="easy"
-                onValueChange={handleModeChange}
-                className={`flex space-x-4 ${
-                  gameStarted || opponent !== "Castle.ai"
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }`}
-              >
-                <div className="flex items-center space-x-2 dark:text-white text-black">
-                  <RadioGroupItem value="easy" id="easy" />
-                  <label htmlFor="easy">Easy</label>
-                </div>
-                <div className="flex items-center space-x-2 dark:text-white text-black">
-                  <RadioGroupItem value="medium" id="medium" />
-                  <label htmlFor="medium">Medium</label>
-                </div>
-                <div className="flex items-center space-x-2 dark:text-white text-black">
-                  <RadioGroupItem value="hard" id="hard" />
-                  <label htmlFor="hard">Hard</label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
-                Match Controls
-              </h3>
-
-              <div className="space-x-2">
-                <AlertDialog
-                  open={showResignDialog}
-                  onOpenChange={setShowResignDialog}
-                >
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive">Resign</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Are you sure you want to resign?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. You will return to the
-                        home page.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => setShowResignDialog(false)}
-                      >
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction onClick={handleResignClick}>
-                        Confirm
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <Button onClick={handleQuickSave} disabled={moveIndex <= 1}>
-                  Quick Save
-                </Button>
-                <Button onClick={handleQuickLoad} disabled={quickSave === null}>
-                  Quick Load
-                </Button>
-                <AlertDialog
-                  open={showExitDialog}
-                  onOpenChange={setShowExitDialog}
-                >
-                  <AlertDialogTrigger asChild>
-                    <Button variant="secondary">Exit</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Exit Game</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Your game progress will be saved automatically. You can
-                        continue this game later from the home page.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel
-                        onClick={() => setShowExitDialog(false)}
-                      >
-                        Cancel
-                      </AlertDialogCancel>
-                      <AlertDialogAction onClick={handleExitClick}>
-                        Exit to Home
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-            <div className="flex flex-col ">
-              <h3 className="text-lg font-semibold mb-2 dark:text-white text-black">
-                Moves
-              </h3>
-              <ScrollArea className="h-96 rounded-md border whitespace-nowrap">
-                <div className="p-4 flex flex-col-reverse">
-                  {moveHistory.map((move, index) => (
-                    <div
-                      key={index}
-                      className={`py-1 ${
-                        index === moveIndex - 1
-                          ? "bg-zinc-300 dark:bg-zinc-500 p-4 rounded-md object-cover dark:text-white text-black"
-                          : "p-4 object-cover dark:text-white text-black"
-                      }`}
-                    >
-                      {move}
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </div>
+          <Chessboard id="BasicBoard" boardWidth={700} position={game.fen()} onPieceDrop={onDrop} boardOrientation={userColor} />
         </div>
       </div>
 
-      <AlertDialog
-        open={showCheckmateDialog}
-        onOpenChange={setShowCheckmateDialog}
-      >
+      {/* Dialogs for checkmate, resign, and exit */}
+      <AlertDialog open={showCheckmateDialog} onOpenChange={setShowCheckmateDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Checkmate!</AlertDialogTitle>
-            <AlertDialogDescription>
-              The game has ended in checkmate. What would you like to do?
-            </AlertDialogDescription>
+            <AlertDialogDescription>The game has ended in checkmate. What would you like to do?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowCheckmateDialog(false)}>
-              Close
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleGameStart}>
-              Start New Game
-            </AlertDialogAction>
-            <AlertDialogAction onClick={handleGameExit}>
-              Exit to Home
-            </AlertDialogAction>
+            <AlertDialogCancel onClick={() => setShowCheckmateDialog(false)}>Close</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setGameStarted(false); setMoveHistory([]); }}>Start New Game</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

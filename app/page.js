@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
 
-// Typing Animation Component
+// Typing Animation Component for welcome text animation
 const TypingAnimation = ({ text, className }) => {
   const [displayText, setDisplayText] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,26 +31,29 @@ const TypingAnimation = ({ text, className }) => {
 };
 
 export default function Home() {
-  const [view, setView] = useState("initial");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [view, setView] = useState("initial"); // Tracks login/register/initial view
+  const [email, setEmail] = useState(""); // User email input
+  const [password, setPassword] = useState(""); // User password input
+  const [isLoading, setIsLoading] = useState(false); // Loading state for form submissions
   const [alertInfo, setAlertInfo] = useState({
     show: false,
     message: "",
     title: "",
     variant: "default",
-  });
+  }); // Alert info for success/failure messages
   const router = useRouter();
 
+  // Clear any stored token when component mounts
   useEffect(() => {
     localStorage.removeItem("jwtToken");
   }, []);
 
+  // Change between login and register views
   const handleViewChange = (newView) => {
     setView(newView);
   };
 
+  // Handles form submissions for login or registration
   const handleSubmit = async (e, type) => {
     e.preventDefault();
     setIsLoading(true);
@@ -66,6 +69,7 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok) {
+        // Store token and display success alert
         localStorage.setItem("jwtToken", data.token);
         localStorage.setItem("userId", data.userId);
         setAlertInfo({
@@ -76,6 +80,7 @@ export default function Home() {
           } successful, Setting up your board..`,
           variant: "default",
         });
+        // Redirect to home page after success alert
         setTimeout(() => {
           router.push(`/home?id=${data.userId}`);
         }, 2000);
@@ -83,6 +88,7 @@ export default function Home() {
         throw new Error(data.message || `${type} failed`);
       }
     } catch (error) {
+      // Display error message if submission fails
       setAlertInfo({
         show: true,
         title: "Error",
@@ -93,6 +99,7 @@ export default function Home() {
     }
   };
 
+  // Renders different views: initial, login, register
   const renderContent = () => {
     switch (view) {
       case "initial":
@@ -190,6 +197,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
+        {/* Animated image or full-screen loading state */}
         <motion.div
           className={`${
             isLoading
@@ -211,6 +219,8 @@ export default function Home() {
             priority
           />
         </motion.div>
+        
+        {/* Renders login, register, or initial welcome view */}
         {!isLoading && (
           <motion.div
             className="w-1/2 h-[600px] flex items-center justify-center"
@@ -224,6 +234,8 @@ export default function Home() {
           </motion.div>
         )}
       </div>
+      
+      {/* Alert for success or error messages */}
       <AnimatePresence>
         {alertInfo.show && (
           <motion.div

@@ -1,3 +1,4 @@
+/* Main container layout */
 .mainContainer {
     height: 100vh;
     margin: 0;
@@ -7,6 +8,7 @@
     align-items: center;
 }
 
+/* Footer positioning */
 .footer {
     padding: 5px;
     width: 100vw;
@@ -15,6 +17,7 @@
     bottom: 0;
 }
 
+/* Landing page styling */
 .landingBox {
     display: flex;
     flex-direction: column;
@@ -46,6 +49,7 @@
     object-fit: cover;
 }
 
+/* Action items section styling */
 .actionItemsWrapper {
     position: relative;
     overflow: hidden;
@@ -75,8 +79,8 @@
     margin-bottom: 20px;
 }
 
+/* Button styles */
 .Button {
-    background-color: #0070f3;
     background-color: black;
     color: white;
     border: 2px solid white;
@@ -90,7 +94,6 @@
 }
 
 .ButtonWhite {
-    text-decoration: none;
     background-color: white;
     color: black;
     border: 2px solid white;
@@ -100,6 +103,7 @@
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
     margin: 5px;
+    text-decoration: none;
 }
 
 .largeBtn {
@@ -112,12 +116,14 @@
     color: black;
 }
 
+/* Button container */
 .buttonContainer {
     display: flex;
     justify-content: center;
     margin-top: 20px;
 }
 
+/* Form styling */
 .formContainer {
     display: flex;
     flex-direction: column;
@@ -136,6 +142,7 @@
     font-size: 16px;
 }
 
+/* Back button styling */
 .backButton {
     display: flex;
     align-items: center;
@@ -145,6 +152,7 @@
     align-self: flex-start;
 }
 
+/* Fade transitions */
 .fade-enter {
     opacity: 0;
 }
@@ -163,36 +171,30 @@
     transition: opacity 200ms ease-in;
 }
 
-/* Add a wrapper for the transitioning content */
+/* Transition wrapper */
 .transition-wrapper {
     position: relative;
     width: 100%;
     height: 100%;
 }
 
+/* Navbar styling */
 .navBar {
     position: fixed;
     top: 10px;
     display: flex;
     width: 90%;
     justify-content: flex-end;
-    /* Aligns the navbar to the right */
     padding: 10px 20px;
     background-color: black;
-    /* Sets the background to black */
 }
 
 .navBar ul {
     list-style: none;
-    /* Removes default bullet points */
     display: flex;
-    /* Makes the list items appear horizontally */
     gap: 20px;
-    /* Adds space between the list items */
     margin: 0;
-    /* Resets default margin */
     padding: 0;
-    /* Resets default padding */
 }
 
 .navBar li {
@@ -201,25 +203,17 @@
 
 .navBar a {
     text-decoration: none;
-    /* Removes underline from links */
     color: white;
-    /* Text color white for a black background */
     font-size: 16px;
     font-weight: normal;
-    /* Default weight */
     position: relative;
-    /* Needed for the underline effect */
     transition: all 0.3s ease;
-    /* Smooth transition for hover effects */
 }
 
 .navBar a:hover {
     font-weight: bold;
-    /* Bolds the text on hover */
     color: white;
-    /* Keeps the text color white */
     text-shadow: 0px 0px 5px rgba(255, 255, 255, 0.3);
-    /* Adds light white shadow */
 }
 
 .navBar a::after {
@@ -228,19 +222,16 @@
     width: 0;
     height: 2px;
     background-color: white;
-    /* White underline */
     bottom: -5px;
-    /* Positions the underline slightly below the text */
     left: 0;
     transition: width 0.3s ease;
-    /* Smooth transition for underline */
 }
 
 .navBar a:hover::after {
     width: 100%;
-    /* Full width underline on hover */
 }
 
+/* Custom element styling */
 .custom {
     display: flex;
     align-items: center;
@@ -256,6 +247,7 @@
     margin-right: 12px;
 }
 
+/* Play container and section layout */
 .playContainer {
     width: 100%;
 }
@@ -299,6 +291,7 @@
     margin-bottom: 20px;
 }
 
+/* Moves section styling */
 .movesSection {
     height: 600px;
     border: 2px solid white;
@@ -306,12 +299,14 @@
     padding: 10px;
 }
 
+/* Modes section layout */
 .modesSection {
     height: 100px;
     display: flex;
     flex-direction: row;
 }
 
+/* Responsive design */
 @media (max-width: 768px) {
     .landingContainer {
         flex-direction: column;
@@ -327,6 +322,7 @@
     }
 }
 
-.learnContainer{
+/* Learn container style */
+.learnContainer {
     background-color: red;
 }

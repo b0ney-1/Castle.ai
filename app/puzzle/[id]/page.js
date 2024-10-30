@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import { Chess } from "chess.js";
-import { Moon, Sun, RotateCcw, Home } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -34,9 +34,7 @@ export default function PuzzleSolver() {
   const [game, setGame] = useState(null);
   const gameRef = useRef(null);
   const messagesEndRef = useRef(null);
-  const scrollAreaRef = useRef(null);
   const moveAudioRef = useRef(null);
-
   const [puzzleData, setPuzzleData] = useState(null);
   const [messages, setMessages] = useState([]);
   const [username, setUsername] = useState("");
@@ -46,42 +44,23 @@ export default function PuzzleSolver() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [userColor, setUserColor] = useState("white");
   const [isAIThinking, setIsAIThinking] = useState(false);
-
   const searchParams = useSearchParams();
   const encodedData = searchParams.get("data");
   const data = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : null;
 
+  // Scrolls to the latest message in the chat
   const scrollToBottom = useCallback(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, []);
 
+  // Initializes the audio for move sounds
   useEffect(() => {
     try {
       const audio = new Audio("/move-self.wav");
-      console.log("Audioooo : ", audio);
-
-      // Add loading event listener
-      audio.addEventListener("canplaythrough", () => {
-        console.log("Audio loaded successfully");
-      });
-
-      // Add error event listener
-      audio.addEventListener("error", (e) => {
-        console.error("Audio loading error:", {
-          error: e.target.error,
-          src: audio.src,
-          readyState: audio.readyState,
-        });
-      });
-
       moveAudioRef.current = audio;
-
-      // Optional: Preload the audio
       audio.load();
-
-      // Cleanup listeners on unmount
       return () => {
         audio.removeEventListener("canplaythrough", () => {});
         audio.removeEventListener("error", () => {});
@@ -91,50 +70,25 @@ export default function PuzzleSolver() {
     }
   }, []);
 
+  // Plays the move sound
   const playMoveSound = () => {
     try {
       if (moveAudioRef.current) {
-        console.log("Attempting to play sound from:", moveAudioRef.current.src);
         moveAudioRef.current.currentTime = 0;
-        const playPromise = moveAudioRef.current.play();
-        console.log(playPromise);
-
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log("Audio played successfully");
-            })
-            .catch((err) => {
-              console.error("Playback error:", {
-                error: err,
-                audioState: {
-                  src: moveAudioRef.current.src,
-                  readyState: moveAudioRef.current.readyState,
-                  paused: moveAudioRef.current.paused,
-                  currentTime: moveAudioRef.current.currentTime,
-                },
-              });
-            });
-        }
-      } else {
-        console.error("Audio reference is not initialized");
+        moveAudioRef.current.play();
       }
     } catch (err) {
       console.error("Error in playMoveSound:", err);
     }
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
-
-  // Update game ref when game state changes
+  // Updates game state and synchronizes with gameRef
   const updateGame = useCallback((newGame) => {
     setGame(newGame);
     gameRef.current = newGame;
   }, []);
 
-  // Initial setup
+  // Initial setup: loads user data and puzzle data
   useEffect(() => {
     setMounted(true);
     const id = localStorage.getItem("userId");
@@ -144,24 +98,20 @@ export default function PuzzleSolver() {
     }
   }, []);
 
+  // Sets up the puzzle when data and component are ready
   useEffect(() => {
     if (data && mounted && !game) {
-      // Add !game check
       const newGame = new Chess(data.fen);
-      console.log(data.fen);
-
       const isWhiteToMove = data.fen.split(" ")[1] === "w";
-
       setPuzzleData(data);
       setUserColor(isWhiteToMove ? "white" : "black");
       updateGame(newGame);
     }
   }, [data, mounted, updateGame, game]);
 
-  // Separate effect for messages
+  // Displays a welcome message for the user
   useEffect(() => {
     if (username && userColor && game && !messages.length) {
-      // Add !messages.length check
       setMessages([
         {
           role: "assistant",
@@ -172,6 +122,7 @@ export default function PuzzleSolver() {
     }
   }, [username, userColor, game, messages.length]);
 
+  // Resets game and chat state on component unmount
   useEffect(() => {
     return () => {
       setGame(null);
@@ -182,6 +133,7 @@ export default function PuzzleSolver() {
     };
   }, []);
 
+  // Adds a message to the chat
   const addMessage = useCallback(
     (content, role = "assistant", isThinking = false) => {
       setMessages((prev) => [...prev, { role, content, isThinking }]);
@@ -189,16 +141,16 @@ export default function PuzzleSolver() {
     []
   );
 
+  // Removes any "thinking" messages from the chat
   const removeThinkingMessages = () => {
     setMessages((prev) => prev.filter((msg) => !msg.isThinking));
   };
 
+  // Fetches AI's response to user's move
   const getMoveResponse = async (move) => {
     try {
       const prompt = `You are a chess coach. The player just made the move ${move}. 
-        Give a very brief (maximum 10 words) encouraging response about their move. 
-        Keep it natural and varied. Don't be repetitive.`;
-
+        Give a very brief (maximum 10 words) encouraging response about their move.`;
       const res = await fetch("/api/openai", {
         method: "POST",
         headers: {
@@ -207,9 +159,7 @@ export default function PuzzleSolver() {
         },
         body: JSON.stringify({ prompt }),
       });
-
       if (!res.ok) throw new Error("Failed to get move response");
-
       const data = await res.json();
       return data.response.trim();
     } catch (error) {
@@ -218,15 +168,12 @@ export default function PuzzleSolver() {
     }
   };
 
+  // Provides a hint for the puzzle
   const getHint = useCallback(async () => {
     if (!gameRef.current) return;
-
     try {
       const prompt = `You are a chess coach. Given the current position in FEN notation: ${gameRef.current.fen()},
-      provide a subtle hint about the best move without directly revealing it.
-      Consider the tactical and strategic elements but don't give away the move.
-      Keep it under 15 words and make it engaging.`;
-
+      provide a subtle hint about the best move without directly revealing it.`;
       const res = await fetch("/api/openai", {
         method: "POST",
         headers: {
@@ -235,9 +182,7 @@ export default function PuzzleSolver() {
         },
         body: JSON.stringify({ prompt }),
       });
-
       if (!res.ok) throw new Error("Failed to get hint");
-
       const data = await res.json();
       setMessages((prev) => [
         ...prev,
@@ -248,7 +193,6 @@ export default function PuzzleSolver() {
         },
       ]);
     } catch (error) {
-      console.error("Error getting hint:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -260,23 +204,20 @@ export default function PuzzleSolver() {
     }
   }, [gameRef]);
 
+  // Makes a move on behalf of the user or AI
   const makeAMove = useCallback(
     async (move) => {
       if (!gameRef.current) return null;
-
       const gameCopy = new Chess(gameRef.current.fen());
       let result = null;
-
       try {
         result = gameCopy.move(move);
       } catch (error) {
         console.error("Move error:", error);
         return null;
       }
-
       if (result) {
         updateGame(gameCopy);
-
         if (gameCopy.isCheckmate()) {
           const winner = gameCopy.turn() === "w" ? "Black" : "White";
           setMessages((prev) => [
@@ -309,29 +250,22 @@ export default function PuzzleSolver() {
         }
       }
       playMoveSound();
-
       return result;
     },
     [updateGame]
   );
 
+  // Fetches the AI's next move
   const getAIMove = useCallback(async () => {
     if (!gameRef.current) return;
-
     const aiColor = userColor === "white" ? "b" : "w";
     if (gameRef.current.turn() !== aiColor) return;
-
     try {
       setIsAIThinking(true);
       await addMessage("Thinking about my move...", "assistant", true);
-
       const possibleMoves = gameRef.current.moves();
       const prompt = `You are a chess engine. Given the current position in FEN: ${gameRef.current.fen()},
-        calculate the absolute best possible move from these legal moves: ${possibleMoves.join(
-          ", "
-        )}.
-        Return only the move in algebraic notation.`;
-
+        calculate the best move from these legal moves: ${possibleMoves.join(", ")}.`;
       const response = await fetch("/api/openai", {
         method: "POST",
         headers: {
@@ -340,14 +274,10 @@ export default function PuzzleSolver() {
         },
         body: JSON.stringify({ prompt }),
       });
-
       removeThinkingMessages();
-
       if (!response.ok) throw new Error("Failed to get AI move");
-
       const data = await response.json();
       const aiMove = data.response.trim();
-
       if (possibleMoves.includes(aiMove)) {
         await addMessage(`I'll play ${aiMove}`);
         await makeAMove(aiMove);
@@ -357,9 +287,7 @@ export default function PuzzleSolver() {
         await makeAMove(bestMove);
       }
     } catch (error) {
-      console.error("Error getting AI move:", error);
-      const possibleMoves = gameRef.current.moves();
-      const bestMove = possibleMoves[0];
+      const bestMove = gameRef.current.moves()[0];
       await addMessage(`I'll play ${bestMove}`);
       await makeAMove(bestMove);
     } finally {
@@ -367,42 +295,35 @@ export default function PuzzleSolver() {
     }
   }, [gameRef, userColor, makeAMove]);
 
+  // Handles user's move on the chessboard
   const onDrop = useCallback(
     async (sourceSquare, targetSquare) => {
       if (!gameRef.current || isAIThinking) return false;
-
       if (gameRef.current.turn() !== userColor[0]) {
         toast("Not your turn");
         return false;
       }
-
       const move = {
         from: sourceSquare,
         to: targetSquare,
         promotion: "q",
       };
-
       const moveResult = await makeAMove(move);
-
       if (moveResult === null) {
         toast("Invalid move");
         return false;
       }
-
-      // Get response for user's move
       const response = await getMoveResponse(moveResult.san);
       await addMessage(response);
-
-      // If game isn't over, make AI move
       if (!gameRef.current.isGameOver()) {
         setTimeout(getAIMove, 500);
       }
-
       return true;
     },
     [gameRef, userColor, isAIThinking, makeAMove, getAIMove]
   );
 
+  // Resets the puzzle to its initial state
   const resetPuzzle = useCallback(() => {
     if (puzzleData) {
       const newGame = new Chess(puzzleData.fen);
@@ -419,6 +340,7 @@ export default function PuzzleSolver() {
     }
   }, [puzzleData, updateGame, username, userColor]);
 
+  // Fetches user data by ID
   const fetchUserData = async (id) => {
     try {
       const response = await fetch(`/api/user?id=${id}`, {
@@ -426,7 +348,6 @@ export default function PuzzleSolver() {
           Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
         },
       });
-
       if (response.ok) {
         const data = await response.json();
         setUsername(data.username);
@@ -437,89 +358,11 @@ export default function PuzzleSolver() {
     }
   };
 
+  // Signs out the user and redirects to the login page
   const handleSignOut = () => {
     localStorage.removeItem("jwtToken");
     router.push("/");
   };
-
-  const LoadingSkeleton = () => (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Navigation Bar Skeleton */}
-      <nav className="h-16 px-6 flex justify-between items-center border-b">
-        <Skeleton className="h-8 w-24" /> {/* Logo */}
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-9 w-9 rounded-full" /> {/* Theme toggle */}
-          <Skeleton className="h-9 w-24" /> {/* Username */}
-        </div>
-      </nav>
-
-      {/* Main Content Skeleton */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="flex gap-8 items-start max-w-[1200px] w-full">
-          {/* Left Column - Chessboard Skeleton */}
-          <div className="flex-1 flex flex-col items-center">
-            {/* Puzzle Title */}
-            <Skeleton className="h-8 w-48 mb-6" />
-
-            {/* Turn Indicators */}
-            <div className="flex space-x-2 mb-4">
-              <Skeleton className="h-8 w-32" />
-              <Skeleton className="h-8 w-32" />
-            </div>
-
-            {/* Chessboard */}
-            <Skeleton className="w-[600px] h-[600px] mb-6" />
-
-            {/* Control Buttons */}
-            <div className="flex gap-4">
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </div>
-
-          {/* Right Column - Chat Panel Skeleton */}
-          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
-            {/* Header */}
-            <div className="px-4 py-3 border-b">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-6 w-24" />
-              </div>
-            </div>
-
-            {/* Messages Area */}
-            <div className="flex-1 p-4">
-              <div className="flex flex-col space-y-4">
-                {[...Array(4)].map((_, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${
-                      index % 2 === 0 ? "justify-start" : "justify-end"
-                    }`}
-                  >
-                    <Skeleton
-                      className={`h-16 ${
-                        index % 2 === 0 ? "w-3/4" : "w-2/3"
-                      } rounded-lg`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Hint Badge */}
-            <div className="p-4 border-t flex justify-center">
-              <Skeleton className="h-8 w-24" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (!mounted || !game) {
-    return <LoadingSkeleton />;
-  }
 
   return (
     <motion.div
