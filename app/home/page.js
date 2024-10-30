@@ -123,7 +123,7 @@ function Dashboard() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-white dark:bg-black flex flex-col"
     >
-      <nav className="py-4 px-6 flex justify-between items-center">
+      <nav className="py-4 px-6 flex justify-between items-center fixed w-full">
         <div
           className="text-2xl font-bold text-gray-800 dark:text-white cursor-pointer"
           onClick={() => router.push("#")}

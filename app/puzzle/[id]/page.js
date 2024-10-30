@@ -530,7 +530,7 @@ export default function PuzzleSolver() {
       className="h-screen  bg-white dark:bg-black flex flex-col overflow-hidden"
     >
       {/* Navigation */}
-      <nav className="h-16 px-6 flex justify-between items-center">
+      <nav className="h-16 px-6 flex justify-between items-center w-full fixed">
         <div className="text-2xl font-bold  text-black dark:text-white">
           Castle.ai
         </div>

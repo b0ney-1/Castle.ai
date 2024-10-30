@@ -111,7 +111,7 @@ export default function PuzzleGallery() {
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
-      <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black ">
+      <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black fixed w-full">
         <div className="text-2xl font-bold text-black dark:text-white">
           Castle.ai
         </div>

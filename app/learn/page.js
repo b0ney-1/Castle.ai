@@ -155,7 +155,7 @@ export default function Learn() {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-black flex flex-col">
         {/* Navigation Bar Skeleton */}
-        <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md">
+        <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black shadow-md fixed">
           <Skeleton className="h-8 w-24" />
           <div className="flex items-center space-x-4">
             <Skeleton className="h-8 w-8 rounded-full" />
@@ -208,7 +208,7 @@ export default function Learn() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-white dark:bg-black flex flex-col"
     >
-      <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black">
+      <nav className="py-4 px-6 flex justify-between items-center bg-white dark:bg-black fixed w-full">
         <div
           className="text-2xl font-bold text-gray-800 dark:text-white cursor-pointer"
           onClick={() => router.push("/home?id=" + userId)}
