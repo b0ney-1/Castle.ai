@@ -52,8 +52,13 @@ export default function PuzzleSolver() {
   const data = encodedData ? JSON.parse(decodeURIComponent(encodedData)) : null;
 
   const scrollToBottom = useCallback(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
   }, []);
 
@@ -573,7 +578,7 @@ export default function PuzzleSolver() {
         </div>
       </nav>
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 pt-20">
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard */}
           <div className="flex-1 flex flex-col items-center">
@@ -640,7 +645,7 @@ export default function PuzzleSolver() {
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
               <div className="flex flex-col space-y-4">
                 {messages.map((message, index) => (
                   <div
@@ -652,15 +657,14 @@ export default function PuzzleSolver() {
                     <div
                       className={`relative max-w-[85%] rounded-lg px-4 py-2 ${
                         message.role === "user"
-                          ? "bg-black text-white dark:bg-white dark:text-black" // User messages
-                          : "bg-gray-100 text-black dark:bg-zinc-800 dark:text-white" // Assistant messages
+                          ? "bg-black text-white dark:bg-white dark:text-black"
+                          : "bg-gray-100 text-black dark:bg-zinc-800 dark:text-white"
                       }`}
                     >
                       {message.content}
                     </div>
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 

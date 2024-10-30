@@ -36,7 +36,6 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   const router = useRouter();
   const [game, setGame] = useState(null);
   const gameRef = useRef(null);
-  const messagesEndRef = useRef(null);
   const scrollAreaRef = useRef(null);
   const moveAudioRef = useRef(null);
 
@@ -132,13 +131,23 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   const [showPracticeDialog, setShowPracticeDialog] = useState(false);
   const [moveValidationFunction, setMoveValidationFunction] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
-  // Auto-scroll effect
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = useCallback(() => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
-  }, [messages, suggestedMoves]);
+  }, []);
+
+  // Update the auto-scroll effect
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, suggestedMoves, scrollToBottom]);
 
   // Cleanup effect
   useEffect(() => {
@@ -171,6 +180,101 @@ export default function OpeningDetailsClient({ name, fen, id }) {
     gameRef.current = newGame;
   }, []);
 
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (inputMessage.trim() === "" || !gameRef.current) return;
+
+    setIsSendingMessage(true);
+
+    // Add user message immediately
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: inputMessage,
+      },
+    ]);
+
+    // Add thinking message
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: "Thinking...",
+        isThinking: true,
+      },
+    ]);
+
+    try {
+      const currentPosition = gameRef.current.fen();
+      const gamePhase = isOpeningPhase ? "learning phase" : "practice phase";
+      const playerColor = userColor;
+      const moveNumber = Math.floor(gameRef.current.moveNumber() / 2) + 1;
+
+      const prompt = `You are a helpful chess coach. Context:
+        - Opening being studied: ${openingDetails.name}
+        - Current game phase: ${gamePhase}
+        - Player is playing as: ${playerColor}
+        - Current position (FEN): ${currentPosition}
+        - Move number: ${moveNumber}
+        - Current player's question: ${inputMessage}
+
+        Please provide a short, single sentence and precise response that is relevant to the current game state and opening being studied. Focus on practical advice and clear explanations.`;
+
+      const response = await fetch("/api/openai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response");
+      }
+
+      const data = await response.json();
+
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => !msg.isThinking));
+
+      // Add AI response
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response.trim(),
+        },
+      ]);
+    } catch (error) {
+      console.error("Error in chat:", error);
+
+      // Remove thinking message
+      setMessages((prev) => prev.filter((msg) => !msg.isThinking));
+
+      // Add error message
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I apologize, I had trouble understanding that. Could you try rephrasing your question?",
+        },
+      ]);
+
+      toast({
+        title: "Error",
+        description: "Failed to get response",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingMessage(false);
+      setInputMessage("");
+      scrollToBottom();
+    }
+  };
+
   const addMessage = async (
     content,
     role = "assistant",
@@ -189,7 +293,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
 
   const LoadingMessage = () => (
     <div className="flex items-center space-x-2 bg-muted p-3 rounded-lg max-w-[85%]">
-      <div>Thinking...</div>
+      <div className="text-black dark:text-white">Thinking...</div>
     </div>
   );
 
@@ -899,7 +1003,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex items-center justify-center p-6 pt-0">
+      <div className="flex-1 flex items-center justify-center p-6 pt-20">
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard */}
           <div className="flex-1 flex flex-col items-center">
@@ -978,8 +1082,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
               )}
             </div>
 
-            {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea ref={scrollAreaRef} className="flex-1 p-4">
               <div className="flex flex-col space-y-4">
                 {messages.map((message, index) => (
                   <div
@@ -992,10 +1095,10 @@ export default function OpeningDetailsClient({ name, fen, id }) {
                       <LoadingMessage />
                     ) : (
                       <div
-                        className={`relative max-w-[85%] rounded-lg px-4 py-2 dark:text-white text-black ${
+                        className={`relative max-w-[85%] rounded-lg px-4 py-2 ${
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-black text-white dark:text-black dark:bg-white"
+                            : "bg-muted dark:text-white text-black"
                         }`}
                       >
                         {message.content}
@@ -1003,7 +1106,6 @@ export default function OpeningDetailsClient({ name, fen, id }) {
                     )}
                   </div>
                 ))}
-                <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
 
@@ -1030,25 +1132,20 @@ export default function OpeningDetailsClient({ name, fen, id }) {
 
             {/* Chat Input */}
             <div className="p-4 border-t">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (inputMessage.trim() === "") return;
-                  setMessages((prev) => [
-                    ...prev,
-                    { role: "user", content: inputMessage },
-                  ]);
-                  setInputMessage("");
-                }}
-                className="flex gap-3"
-              >
+              <form onSubmit={handleChatSubmit} className="flex gap-3">
                 <Input
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Ask about the opening..."
-                  disabled={isGameOver}
+                  disabled={isGameOver || isSendingMessage}
+                  className="text-black dark:text-white flex-1"
                 />
-                <Button type="submit" disabled={isGameOver}>
+                <Button
+                  type="submit"
+                  disabled={
+                    isGameOver || isSendingMessage || inputMessage.trim() === ""
+                  }
+                >
                   Send
                 </Button>
               </form>
