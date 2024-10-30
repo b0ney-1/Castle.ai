@@ -6,8 +6,6 @@ import "./globals.css";
 import { Suspense } from "react";
 import { Source_Sans_3 } from "next/font/google";
 
-// Remove Head import as it's not needed in App Router
-// import Head from "next/head";
 import Footer from "@/components/ui/footer";
 
 const geistSans = localFont({

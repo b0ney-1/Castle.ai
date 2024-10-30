@@ -24,8 +24,8 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-white dark:bg-black w-full">
-      <div className="max-w-7xl mx-auto px-4 py-5">
+    <footer className="bg-transparent w-full fixed bottom-0">
+      <div className="max-w-full mx-auto px-4 py-5">
         <div className="flex justify-between items-start">
           <div>
             <div className="text-gray-500 text-xs mb-4 pt-1 pb-1 pl-3 pr-3 bg-slate-100 max-w-[190px]">
