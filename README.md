@@ -36,11 +36,11 @@ Ready to revolutionize your chess game? Castle.ai brings the power of artificial
 
 All wrapped in a sleek, modern interface with:
 
-Real-time move analysis
-Dynamic board animations
-Light/Dark themes
-Seamless user experience
-Friendly chat-style interactions
+- Real-time move analysis
+- Dynamic board animations
+- Light/Dark themes
+- Seamless user experience
+- Friendly chat-style interactions
 
 Castle.ai combines the ancient art of chess with cutting-edge AI to create a learning experience that's both fun and powerful. Whether you're taking your first steps in chess or aiming to improve your game, Castle.ai is your perfect companion on the journey to chess mastery! ♟️✨
 
@@ -96,24 +96,7 @@ JWT_SECRET=
 
 ```
 
-4. **Configure Next.js**
-   Update `next.config.js`:
-
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  env: {
-    MONGODB_URI: process.env.MONGODB_URI,
-    JWT_SECRET: process.env.JWT_SECRET,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-  },
-};
-
-module.exports = nextConfig;
-```
-
-5. **Start the development server**
+4. **Start the development server**
 
 ```bash
 npm run dev

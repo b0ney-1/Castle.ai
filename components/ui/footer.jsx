@@ -24,20 +24,24 @@ const Footer = () => {
   }, []);
 
   return (
-    <footer className="bg-transparent w-full fixed bottom-0">
-      <div className="max-w-full mx-auto px-2 py-2">
+    <footer
+      className="bg-white text-black dark:bg-black dark:text-white w-full border-t-2"
+      style={{ pointerEvents: "none" }}
+    >
+      <div className="max-w-7xl mx-auto px-4 py-5">
         <div className="flex justify-between items-start">
-          <div>
-            <div className="text-gray-500 text-xs mb-4 pt-1 pb-1 pl-3 pr-3 bg-slate-100 max-w-[190px]">
+          {/* Left content */}
+          <div style={{ pointerEvents: "auto" }}>
+            <div className="text-gray-500 text-xs mb-4 pt-1 pb-1 pl-3 pr-3 bg-slate-100 max-w-[190px] relative z-[1]">
               Free Open source AI template
             </div>
-            <div className="text-black dark:text-white mb-2 text-2xl font-bold font-sans">
-              Build your own Flash Card GPT
+            <div className="text-black dark:text-white mb-2 text-2xl font-bold font-sans relative z-[1]">
+              Build your own Castle.ai
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 relative z-[1]">
               <Link
                 href="#"
-                className="bg-black text-white dark:bg-white dark:hover:bg-slate-200 dark:text-black px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-xs"
+                className="bg-black text-white dark:bg-white dark:text-black dark:hover:bg-slate-200  px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-xs"
               >
                 Fork and Build Your Own
               </Link>
@@ -90,7 +94,12 @@ const Footer = () => {
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end justify-end">
+
+          {/* Right content */}
+          <div
+            className="flex flex-col items-end justify-end relative z-[1]"
+            style={{ pointerEvents: "auto" }}
+          >
             <div className="flex items-center gap-2 pt-8">
               <span className="text-gray-600 font-sans">MADE WITH</span>
               <span className="text-black dark:text-white text-xl font-sans">

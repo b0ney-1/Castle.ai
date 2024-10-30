@@ -19,7 +19,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -716,6 +715,8 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   };
 
   const handleReset = async () => {
+    console.log("Resetting game...");
+
     const newGame = new Chess();
     updateGame(newGame);
     setIsOpeningPhase(true);
@@ -767,9 +768,9 @@ export default function OpeningDetailsClient({ name, fen, id }) {
   }
 
   const LoadingSkeleton = () => (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="h-screen  bg-white dark:bg-black flex flex-col overflow-hidden">
       {/* Navigation Bar Skeleton */}
-      <nav className="h-16 px-6 flex justify-between items-center border-b">
+      <nav className="h-16 px-6 flex justify-between items-center border-b fixed">
         <Skeleton className="h-8 w-24" />
         <div className="flex items-center gap-4">
           <Skeleton className="h-9 w-9 rounded-full" />
@@ -778,7 +779,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       </nav>
 
       {/* Main Content Area Skeleton */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6  bg-white dark:bg-black">
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard Skeleton */}
           <div className="flex-1 flex flex-col items-center">
@@ -797,7 +798,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
           </div>
 
           {/* Right Column - Tutorial Panel Skeleton */}
-          <div className="w-[400px] h-[700px] flex flex-col bg-background rounded-lg border shadow-sm">
+          <div className="w-[400px] h-[700px] flex flex-col  bg-white dark:bg-black rounded-lg border shadow-sm">
             {/* Header Skeleton */}
             <div className="px-4 py-3 border-b">
               <div className="flex items-center justify-between">
@@ -855,7 +856,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       className="h-screen bg-background flex flex-col overflow-hidden bg-white dark:bg-black"
     >
       {/* Navigation Bar */}
-      <nav className="h-16 px-6 flex justify-between items-center">
+      <nav className="h-16 px-6 flex justify-between items-center fixed w-full">
         <div className="text-2xl font-bold dark:text-white text-black">
           Castle.ai
         </div>
@@ -895,7 +896,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       </nav>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 pt-0">
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
           {/* Left Column - Chessboard */}
           <div className="flex-1 flex flex-col items-center">
@@ -934,7 +935,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
             </div>
 
             <div className="flex gap-4">
-              <Button onClick={handleReset} disabled={!isOpeningPhase}>
+              <Button onClick={() => handleReset} disabled={!isOpeningPhase}>
                 Reset Position
               </Button>
               <Link href="/learn">
@@ -1089,9 +1090,6 @@ export default function OpeningDetailsClient({ name, fen, id }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Toaster */}
-      {/* <Toaster richColors position="top-right" /> */}
     </motion.div>
   );
 }
