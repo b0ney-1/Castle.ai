@@ -25,19 +25,19 @@ const Footer = () => {
 
   return (
     <footer className="bg-transparent w-full fixed bottom-0">
-      <div className="max-w-full mx-auto px-4 py-5">
+      <div className="max-w-full mx-auto px-2 py-2">
         <div className="flex justify-between items-start">
           <div>
             <div className="text-gray-500 text-xs mb-4 pt-1 pb-1 pl-3 pr-3 bg-slate-100 max-w-[190px]">
               Free Open source AI template
             </div>
-            <div className="text-black dark:text-white mb-4 text-2xl font-bold font-sans">
+            <div className="text-black dark:text-white mb-2 text-2xl font-bold font-sans">
               Build your own Flash Card GPT
             </div>
             <div className="flex items-center gap-4">
               <Link
                 href="#"
-                className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-xs"
+                className="bg-black text-white dark:bg-white dark:hover:bg-slate-200 dark:text-black px-4 py-2 rounded-md hover:bg-gray-800 transition-colors text-xs"
               >
                 Fork and Build Your Own
               </Link>
@@ -90,7 +90,7 @@ const Footer = () => {
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-4">
+          <div className="flex flex-col items-end justify-end">
             <div className="flex items-center gap-2 pt-8">
               <span className="text-gray-600 font-sans">MADE WITH</span>
               <span className="text-black dark:text-white text-xl font-sans">
