@@ -959,7 +959,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
               {isOpeningPhase && openingMoves.length > 0 && (
                 <div className="mt-2">
                   <div className="text-sm text-muted-foreground">
-                    Move {currentOpeningMove + 1} of {openingMoves.length}
+                    Move {currentOpeningMove + 1} of {openingMoves.length + 1}
                   </div>
                   <div className="h-1 mt-1 bg-secondary rounded-full overflow-hidden">
                     <div
