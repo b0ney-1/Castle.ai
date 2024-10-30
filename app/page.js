@@ -105,7 +105,9 @@ export default function Home() {
             transition={{ duration: 0.3 }}
             className="flex flex-col items-center space-y-8"
           >
-            <h1 className="text-5xl font-bold">Welcome to Castle.ai</h1>
+            <h1 className="text-5xl font-bold font-sans">
+              Welcome to Castle.ai
+            </h1>
             <TypingAnimation
               text="Your Move, Powered by AI"
               className="text-xl text-neutral-600 dark:text-neutral-300 font-light tracking-wider"
@@ -209,6 +211,7 @@ export default function Home() {
             height={600}
             className="object-contain"
             priority
+            unoptimized
           />
         </motion.div>
         {!isLoading && (

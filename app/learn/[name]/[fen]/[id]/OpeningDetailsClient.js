@@ -1091,7 +1091,7 @@ export default function OpeningDetailsClient({ name, fen, id }) {
       </AlertDialog>
 
       {/* Toaster */}
-      <Toaster richColors position="top-right" />
+      {/* <Toaster richColors position="top-right" /> */}
     </motion.div>
   );
 }

@@ -21,8 +21,16 @@ body {
   margin: 0;
 }
 
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
 @layer base {
   :root {
+    font-family: inherit;
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
     --card: 0 0% 100%;

@@ -4,6 +4,9 @@ const nextConfig = {
   experimental: {
     missingSuspenseWithCSRBailout: false,
   },
+  images: {
+    domains: ["metaschool.so"],
+  },
 };
 
 export default nextConfig;

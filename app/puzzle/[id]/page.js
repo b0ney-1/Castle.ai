@@ -696,7 +696,7 @@ export default function PuzzleSolver() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Toaster />
+      {/* <Toaster /> */}
     </motion.div>
   );
 }
