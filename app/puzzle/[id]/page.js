@@ -530,8 +530,12 @@ export default function PuzzleSolver() {
       className="h-screen  bg-white dark:bg-black flex flex-col overflow-hidden"
     >
       {/* Navigation */}
-      <nav className="h-16 px-6 flex justify-between items-center w-full fixed">
-        <div className="text-2xl font-bold  text-black dark:text-white">
+
+      <nav className="h-16 px-6 flex justify-between items-center w-full fixed ">
+        <div
+          className="text-2xl font-bold  text-black dark:text-white cursor-pointer"
+          onClick={() => router.push("/puzzle")}
+        >
           Castle.ai
         </div>
         <div className="flex items-center gap-4">
@@ -568,7 +572,6 @@ export default function PuzzleSolver() {
           </DropdownMenu>
         </div>
       </nav>
-
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="flex gap-8 items-start max-w-[1200px] w-full">
@@ -674,7 +677,6 @@ export default function PuzzleSolver() {
           </div>
         </div>
       </div>
-
       {/* Success Dialog */}
       <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
         <AlertDialogContent>
@@ -695,7 +697,6 @@ export default function PuzzleSolver() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       {/* <Toaster /> */}
     </motion.div>
   );

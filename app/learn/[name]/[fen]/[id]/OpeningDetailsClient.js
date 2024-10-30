@@ -857,7 +857,10 @@ export default function OpeningDetailsClient({ name, fen, id }) {
     >
       {/* Navigation Bar */}
       <nav className="h-16 px-6 flex justify-between items-center fixed w-full">
-        <div className="text-2xl font-bold dark:text-white text-black">
+        <div
+          className="text-2xl font-bold dark:text-white text-black cursor-pointer"
+          onClick={() => router.back()}
+        >
           Castle.ai
         </div>
         <div className="flex items-center gap-4">

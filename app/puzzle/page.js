@@ -112,7 +112,10 @@ export default function PuzzleGallery() {
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
       <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black fixed w-full">
-        <div className="text-2xl font-bold text-black dark:text-white">
+        <div
+          className="text-2xl font-bold text-black dark:text-white cursor-pointer"
+          onClick={() => router.push("/home?id=" + userId)}
+        >
           Castle.ai
         </div>
         <div className="flex items-center gap-4">
