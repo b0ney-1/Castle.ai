@@ -30,7 +30,7 @@ Ready to revolutionize your chess game? Castle.ai brings the power of artificial
     - Bobby Fischer's precise technique
     - Samay Raina's entertaining approach
   - Interactive gameplay with dynamic board updates
-  - Save and resume games
+  - Automatic Save and resume games
 
 - **Learn a wide array of 11,493 Openings**
 
@@ -145,7 +145,6 @@ Visit `http://localhost:3000` to see the application running.
 - Follow the interactive tutorial
 - Practice against AI
 - Track your progress
-- Review learned variations
 
 ### Solving Puzzles
 
@@ -194,7 +193,8 @@ Visit `http://localhost:3000` to see the application running.
 
 #### AI Enhancements
 
-- More grandmaster playing styles
+- More grandmaster playing styles or Custom data sets
+- More AI personalities
 - Personalized learning paths
 - Advanced position evaluation
 - Interactive endgame training
@@ -207,6 +207,7 @@ Visit `http://localhost:3000` to see the application running.
 - Achievement system
 - Social features and sharing
 - Progress tracking dashboard
+- Game analytics and statistics
 
 ## Contributing
 
