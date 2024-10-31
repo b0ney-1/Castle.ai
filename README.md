@@ -125,6 +125,10 @@ Visit `http://localhost:3000` to see the application running.
 
 ## Screenshots
 
+<div align="center">
+  <img src="public/App.gif" alt="Application Demo" width="800px" />
+</div>
+
 ## How to use the application
 
 ### Playing Against AI
