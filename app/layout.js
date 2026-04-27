@@ -53,6 +53,9 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <link rel="preload" as="image" href="/main.gif" fetchpriority="high" />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
