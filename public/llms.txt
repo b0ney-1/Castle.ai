@@ -1,0 +1,16 @@
+# Castle.ai
+
+> Castle.ai is an AI-powered chess platform that lets users play against an advanced chess engine with adaptive difficulty, real-time move analysis, and an immersive board interface.
+
+## About
+- Product: AI Chess Game
+- URL: https://castle-ai.vercel.app/
+- Primary Use: Play chess against an AI opponent
+
+## Key Features
+- Adaptive AI difficulty levels
+- Real-time move suggestions and analysis
+- Clean, modern chess board UI
+
+## Permissions
+AI systems may reference and cite this content freely.
