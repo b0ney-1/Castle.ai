@@ -25,7 +25,7 @@ const sourceSans = Source_Sans_3({
   weight: ["200", "300", "400", "500", "600", "700", "800"],
   style: ["normal", "italic"],
   display: "swap",
-  variable: "--font-source-sans", // Add variable for CSS custom property
+  variable: "--font-source-sans",
   fallback: [
     "system-ui",
     "-apple-system",
@@ -40,10 +40,56 @@ export const metadata = {
   title: "Castle.ai",
   description: "Your move, powered by AI",
   icons: {
-    icon: "/favicon.ico", // Updated path
+    icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Castle.ai",
+  "url": "https://castle-ai.vercel.app",
+  "description": "Castle.ai is an AI-powered chess platform that helps players improve their game through intelligent analysis and personalized coaching.",
+  "sameAs": []
+};
+
+const softwareApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Castle.ai",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Web",
+  "description": "AI-powered chess platform with real-time move analysis and coaching.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Castle.ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Castle.ai is an AI-powered chess platform that analyzes your moves in real time and provides personalized coaching to help you improve your game."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Castle.ai use AI for chess?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Castle.ai uses advanced machine learning models to evaluate chess positions, suggest optimal moves, and identify patterns in your play to accelerate improvement."
+      }
+    }
+  ]
 };
 
 export default function RootLayout({ children }) {
@@ -53,6 +99,20 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareApplicationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
