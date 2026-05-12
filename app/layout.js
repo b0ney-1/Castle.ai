@@ -46,6 +46,44 @@ export const metadata = {
   },
 };
 
+const softwareApplicationSchema = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Castle.ai",
+  "applicationCategory": "GameApplication",
+  "operatingSystem": "Web",
+  "description": "Castle.ai is an AI-powered chess assistant that analyzes your moves, suggests optimal strategies, and helps players of all levels improve their game using advanced chess AI engine technology.",
+  "url": "https://castle-ai.vercel.app",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Castle.ai?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Castle.ai is an AI-powered chess assistant and move analyzer that uses a chess AI engine to evaluate positions, suggest best moves, and help players improve their strategy."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the Castle.ai chess AI engine work?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Castle.ai analyzes board positions in real time using an AI chess engine, providing move suggestions, tactical alerts, and strategic insights tailored to your skill level."
+      }
+    }
+  ]
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -53,6 +91,20 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(softwareApplicationSchema),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqSchema),
+          }}
+        />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
