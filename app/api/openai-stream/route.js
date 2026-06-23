@@ -1,11 +1,18 @@
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request) {
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("OpenAI API key is missing");
+      return new Response(JSON.stringify({ error: "OpenAI API key is not configured" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
     const { prompt } = await request.json();
 
     const response = await openai.chat.completions.create({
