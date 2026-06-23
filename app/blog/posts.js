@@ -76,6 +76,9 @@ export const posts = [
       { type: "heading", text: "Start This Weekend" },
       { type: "paragraph", text: "The gap between 'AI product idea' and 'live AI product' is smaller than it's ever been. The tools exist. The infrastructure is free. The template is ready to fork." },
       { type: "paragraph", text: "What's left is the decision to start. Fork Castle.ai, deploy it tonight, and build your one core feature tomorrow. By Sunday, you'll have something real." }
+    ]
+  },
+  {
     slug: "castle-ai-review-2026-best-free-open-source-ai-app-template",
     title: "Castle.ai Review 2026: The Best Free Open-Source AI App Template?",
     excerpt: "If you want to build an AI-powered product without spending weeks on boilerplate setup, Castle.ai is worth a serious look. It's a free, open-source AI application template hosted on Vercel, built by Metaschool to help developers go from zero to a working AI app as fast as possible.",
