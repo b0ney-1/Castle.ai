@@ -45,6 +45,12 @@ const Footer = () => {
               >
                 Fork and Build Your Own
               </Link>
+              <Link
+                href="/blog"
+                className="px-4 py-2 rounded-md border border-gray-300 dark:border-neutral-800 text-black dark:text-white dark:hover:bg-neutral-900 hover:bg-gray-100 transition-colors text-xs font-sans"
+              >
+                Read our Blog
+              </Link>
               <div className="relative inline-flex items-center group">
                 <button className="flex items-center gap-2 px-4 py-2 rounded-md border border-gray-200 bg-black text-white hover:bg-white hover:text-black transition-colors text-xs">
                   <svg

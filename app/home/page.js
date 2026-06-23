@@ -133,6 +133,13 @@ function Dashboard() {
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
+            onClick={() => router.push("/blog")}
+            className="text-sm font-medium dark:text-white text-black hover:bg-slate-100 dark:hover:bg-slate-900"
+          >
+            Blog
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
             {theme === "light" ? (
