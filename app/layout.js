@@ -44,6 +44,28 @@ export const metadata = {
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
+  openGraph: {
+    type: "website",
+    url: "https://castle-ai.vercel.app/",
+    title: "Castle.ai — AI Chess Assistant & Move Analyzer",
+    description:
+      "Analyze chess positions, get AI-powered move suggestions, and improve your game with Castle.ai — your intelligent chess engine companion.",
+    images: [
+      {
+        url: "https://castle-ai.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Castle.ai — AI Chess Assistant",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Castle.ai — AI Chess Assistant & Move Analyzer",
+    description:
+      "Analyze chess positions, get AI-powered move suggestions, and improve your game with Castle.ai.",
+    images: ["https://castle-ai.vercel.app/og-image.png"],
+  },
 };
 
 export default function RootLayout({ children }) {
