@@ -12,12 +12,14 @@ const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
+  display: "swap",
 });
 
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+  display: "swap",
 });
 
 const sourceSans = Source_Sans_3({
@@ -37,8 +39,8 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata = {
-  title: "Castle.ai",
-  description: "Your move, powered by AI",
+  title: "Castle.ai - AI-Powered Chess Platform",
+  description: "Your move, powered by AI. Master chess with intelligent AI assistance, personalized lessons, and advanced gameplay analysis.",
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
@@ -53,6 +55,10 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        {/* Preload critical LCP image */}
+        <link rel="preload" as="image" href="/main.gif" fetchPriority="high" />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
