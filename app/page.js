@@ -189,62 +189,128 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
-        <motion.div
-          className={`${
-            isLoading
-              ? "fixed inset-0 flex items-center justify-center"
-              : "w-1/2 flex justify-center"
-          }`}
-          animate={{
-            width: isLoading ? "100%" : "50%",
-            scale: isLoading ? 1.2 : 1,
-          }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-        >
-          <Image
-            src="/main.gif"
-            alt="Logo"
-            width={600}
-            height={600}
-            className="object-contain"
-            priority
-            unoptimized
-          />
-        </motion.div>
-        {!isLoading && (
+    <>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
           <motion.div
-            className="w-1/2 h-[600px] flex items-center justify-center"
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            className={`${
+              isLoading
+                ? "fixed inset-0 flex items-center justify-center"
+                : "w-1/2 flex justify-center"
+            }`}
+            animate={{
+              width: isLoading ? "100%" : "50%",
+              scale: isLoading ? 1.2 : 1,
+            }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              {renderContent()}
-            </AnimatePresence>
+            <Image
+              src="/main.gif"
+              alt="Logo"
+              width={600}
+              height={600}
+              className="object-contain"
+              priority
+              unoptimized
+            />
           </motion.div>
-        )}
+          {!isLoading && (
+            <motion.div
+              className="w-1/2 h-[600px] flex items-center justify-center"
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                {renderContent()}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </div>
+        <AnimatePresence>
+          {alertInfo.show && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-6 right-6"
+            >
+              <Alert variant={alertInfo.variant} className="w-96 p-4 shadow-lg">
+                <div className="flex items-center space-x-3">
+                  <AlertCircle className="h-6 w-6 flex-shrink-0" />
+                  <AlertDescription className="text-lg">
+                    {alertInfo.message}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-      <AnimatePresence>
-        {alertInfo.show && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6"
-          >
-            <Alert variant={alertInfo.variant} className="w-96 p-4 shadow-lg">
-              <div className="flex items-center space-x-3">
-                <AlertCircle className="h-6 w-6 flex-shrink-0" />
-                <AlertDescription className="text-lg">
-                  {alertInfo.message}
-                </AlertDescription>
-              </div>
-            </Alert>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+
+      <section id="about" className="max-w-4xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold mb-6">What is Castle.ai?</h2>
+        <p className="text-lg mb-8 leading-relaxed">
+          Castle.ai is an AI-powered chess platform that helps players of all skill levels improve their game through real-time analysis, personalized coaching, and adaptive AI opponents. Whether you're a beginner learning the basics or an advanced player studying grandmaster-level openings, Castle.ai provides the tools you need to level up.
+        </p>
+
+        <h2 className="text-3xl font-bold mb-6">Key Features</h2>
+        <ul className="space-y-4 mb-8 text-lg">
+          <li>
+            <strong>AI-Powered Analysis</strong> — Get move-by-move feedback powered by state-of-the-art chess engines.
+          </li>
+          <li>
+            <strong>Adaptive Opponents</strong> — Play against AI that adjusts to your Elo rating in real time.
+          </li>
+          <li>
+            <strong>Opening Explorer</strong> — Study 500,000+ opening lines with AI commentary.
+          </li>
+          <li>
+            <strong>Personalized Training Plans</strong> — AI-generated study plans based on your weaknesses.
+          </li>
+        </ul>
+
+        <h2 className="text-3xl font-bold mb-6">Why Choose Castle.ai?</h2>
+        <p className="text-lg mb-8 leading-relaxed">
+          Unlike traditional chess platforms, Castle.ai uses large language models to explain <em>why</em> a move is strong or weak — not just assign a numerical evaluation. This makes improvement faster and more intuitive for players at every level.
+        </p>
+      </section>
+
+      <section id="faq" className="max-w-4xl mx-auto px-6 py-16 bg-neutral-50 dark:bg-neutral-900">
+        <h2 className="text-3xl font-bold mb-8">Frequently Asked Questions</h2>
+        <dl className="space-y-6">
+          <div>
+            <dt className="text-xl font-semibold mb-2">Is Castle.ai free to use?</dt>
+            <dd className="text-lg leading-relaxed">
+              Castle.ai offers a free tier with core features. Premium plans unlock advanced AI analysis and unlimited games.
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xl font-semibold mb-2">What chess engine does Castle.ai use?</dt>
+            <dd className="text-lg leading-relaxed">
+              Castle.ai integrates Stockfish 16 alongside proprietary LLM-based commentary for human-readable explanations.
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xl font-semibold mb-2">Can I use Castle.ai to prepare for tournaments?</dt>
+            <dd className="text-lg leading-relaxed">
+              Absolutely. Castle.ai's opening explorer and personalized training plans are designed to help competitive players prepare effectively. Many tournament players use our platform to analyze their games and identify patterns in their play.
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xl font-semibold mb-2">How does the AI adjust to my skill level?</dt>
+            <dd className="text-lg leading-relaxed">
+              Castle.ai's adaptive AI opponent continuously evaluates your performance and adjusts its playing strength in real time. This ensures you're always challenged at the right level without being overwhelmed or under-stimulated.
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xl font-semibold mb-2">What makes Castle.ai different from other chess platforms?</dt>
+            <dd className="text-lg leading-relaxed">
+              While traditional chess platforms provide numerical evaluations, Castle.ai goes further by explaining the reasoning behind each move in natural language. Our AI helps you understand chess concepts intuitively, making learning more effective and enjoyable.
+            </dd>
+          </div>
+        </dl>
+      </section>
+    </>
   );
 }
