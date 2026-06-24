@@ -37,12 +37,31 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata = {
-  title: "Castle.ai",
-  description: "Your move, powered by AI",
+  title: "Castle.ai — Play Chess Against a Powerful AI Opponent",
+  description: "Challenge an advanced AI in real-time chess. Castle.ai offers adaptive difficulty, move analysis, and an immersive board experience — your move, powered by AI.",
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://castle-ai.vercel.app/",
+    title: "Castle.ai — Play Chess Against a Powerful AI Opponent",
+    description: "Challenge an advanced AI in real-time chess. Castle.ai offers adaptive difficulty, move analysis, and an immersive board experience — your move, powered by AI.",
+    images: [
+      {
+        url: "https://castle-ai.vercel.app/og-image.png",
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Castle.ai — Play Chess Against a Powerful AI Opponent",
+    description: "Challenge an advanced AI in real-time chess. Adaptive difficulty, move analysis, and immersive gameplay.",
+    images: ["https://castle-ai.vercel.app/og-image.png"],
   },
 };
 
