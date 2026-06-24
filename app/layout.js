@@ -24,7 +24,7 @@ const sourceSans = Source_Sans_3({
   subsets: ["latin"],
   weight: ["200", "300", "400", "500", "600", "700", "800"],
   style: ["normal", "italic"],
-  display: "swap",
+  display: "optional",
   variable: "--font-source-sans", // Add variable for CSS custom property
   fallback: [
     "system-ui",

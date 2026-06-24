@@ -107,10 +107,13 @@ export default function Home() {
             <h1 className="text-5xl font-bold font-sans">
               Welcome to Castle.ai
             </h1>
-            <TypingAnimation
-              text="Your Move, Powered by AI"
-              className="text-xl text-neutral-600 dark:text-neutral-300 font-light tracking-wider"
-            />
+            {/* Reserve space for full tagline to prevent buttons from shifting as text types in */}
+            <div style={{ minHeight: "1.75rem" }}>
+              <TypingAnimation
+                text="Your Move, Powered by AI"
+                className="text-xl text-neutral-600 dark:text-neutral-300 font-light tracking-wider"
+              />
+            </div>
             <div className="flex space-x-12">
               <Button
                 variant="default"
@@ -197,6 +200,7 @@ export default function Home() {
               ? "fixed inset-0 flex items-center justify-center"
               : "w-1/2 flex justify-center"
           }`}
+          style={!isLoading ? { aspectRatio: "1 / 1", maxWidth: "600px" } : undefined}
           animate={{
             width: isLoading ? "100%" : "50%",
             scale: isLoading ? 1.2 : 1,
