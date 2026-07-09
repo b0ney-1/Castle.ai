@@ -189,8 +189,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
+    <div className="flex flex-col min-h-screen">
+      <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl mx-auto pt-16 pb-8 px-4">
         <motion.div
           className={`${
             isLoading
@@ -226,6 +226,57 @@ export default function Home() {
           </motion.div>
         )}
       </div>
+
+      <section id="features" className="w-full max-w-4xl mx-auto px-4 py-12">
+        <h2 className="text-3xl font-bold mb-4">Why Castle.ai?</h2>
+        <p className="text-lg text-neutral-700 dark:text-neutral-300 mb-6">
+          Castle.ai is an AI-powered chess platform that analyzes your games in real time, suggests optimal moves, and helps players of all skill levels improve faster than traditional training methods.
+        </p>
+        <ul className="space-y-4 text-base text-neutral-700 dark:text-neutral-300">
+          <li>
+            <strong>Real-time move analysis</strong> — Get instant feedback on every move you make. Castle.ai evaluates each position using advanced machine learning models, highlighting blunders, missed tactics, and brilliant moves so you can learn on the spot.
+          </li>
+          <li>
+            <strong>Adaptive AI opponent</strong> — Play against an engine that matches your skill level. Whether you are a beginner learning the basics or an advanced player sharpening your endgame, Castle.ai adjusts its strength to give you the most productive game possible.
+          </li>
+          <li>
+            <strong>Game review &amp; insights</strong> — Understand your mistakes with detailed post-game breakdowns. After every game, Castle.ai provides a full move-by-move analysis, identifying key turning points and suggesting better continuations to help you grow as a player.
+          </li>
+          <li>
+            <strong>Opening preparation</strong> — Explore thousands of opening lines and build a personalized repertoire. Castle.ai tracks which openings you play and recommends study material tailored to your playing style.
+          </li>
+          <li>
+            <strong>Puzzle training</strong> — Sharpen your tactical vision with daily puzzles curated by difficulty. Solve checkmates, forks, pins, and skewers to build pattern recognition that translates directly into better over-the-board play.
+          </li>
+        </ul>
+      </section>
+
+      <section id="faq" className="w-full max-w-4xl mx-auto px-4 py-12">
+        <h2 className="text-3xl font-bold mb-6">Frequently Asked Questions</h2>
+        <dl className="space-y-6 text-base text-neutral-700 dark:text-neutral-300">
+          <div>
+            <dt className="font-semibold text-lg">What is Castle.ai?</dt>
+            <dd className="mt-1">Castle.ai is an AI chess platform that uses machine learning to help players analyze games, practice openings, and improve their overall chess strategy. It combines a powerful evaluation engine with personalized coaching features to give every player a competitive edge.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-lg">Is Castle.ai free to use?</dt>
+            <dd className="mt-1">Castle.ai offers a free tier with core features and premium plans for advanced analysis tools. The free plan includes real-time move analysis, adaptive AI play, and access to the puzzle trainer. Premium plans unlock deeper game insights, unlimited game reviews, and priority access to new features.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-lg">How does the AI analysis work?</dt>
+            <dd className="mt-1">Castle.ai evaluates each position using a combination of classical chess engines and neural network models trained on millions of grandmaster games. The result is a nuanced assessment that goes beyond simple centipawn scores, offering human-readable explanations of why a move is good or bad.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-lg">Can beginners use Castle.ai?</dt>
+            <dd className="mt-1">Absolutely. Castle.ai is designed for players of all skill levels. Beginners benefit from the adaptive AI opponent that grows with them, simple puzzle explanations, and guided opening tutorials. More experienced players can dive into deep positional analysis and engine lines to fine-tune their game.</dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-lg">What devices does Castle.ai support?</dt>
+            <dd className="mt-1">Castle.ai is a web-based platform that works on any modern browser across desktop and mobile devices. There is no software to install — simply sign up, log in, and start playing or analyzing immediately.</dd>
+          </div>
+        </dl>
+      </section>
+
       <AnimatePresence>
         {alertInfo.show && (
           <motion.div
