@@ -37,8 +37,8 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata = {
-  title: "Castle.ai",
-  description: "Your move, powered by AI",
+  title: "Castle.ai - AI Chess Platform",
+  description: "Your move, powered by AI. Play chess with advanced AI opponents and improve your game.",
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
@@ -53,6 +53,11 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <link rel="preload" as="image" href="/main.gif" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
