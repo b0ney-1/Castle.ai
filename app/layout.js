@@ -38,7 +38,7 @@ const sourceSans = Source_Sans_3({
 
 export const metadata = {
   title: "Castle.ai",
-  description: "Your move, powered by AI",
+  description: "Play chess against Castle.ai's powerful Chess AI. Sharpen your skills, challenge yourself, and experience smarter gameplay. Try it free today.",
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
