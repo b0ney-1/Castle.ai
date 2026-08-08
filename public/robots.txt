@@ -1,0 +1,3 @@
+# llms.txt location for AI models
+# See https://llmstxt.org for specification
+LLMs: https://castle-ai.vercel.app/llms.txt

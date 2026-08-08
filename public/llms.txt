@@ -1,0 +1,22 @@
+# Castle.ai
+
+> Castle.ai is an AI-powered chess assistant and move analyzer that helps chess players of all skill levels improve their game through real-time position analysis, move suggestions, and strategic explanations.
+
+## Key Pages
+
+- [Home](https://castle-ai.vercel.app/): Main product page with overview of Castle.ai's AI chess analysis features
+
+## About
+
+Castle.ai uses a neural-network-based chess engine to analyze board positions and provide human-readable explanations of optimal moves. It is designed for casual players, club players, and competitive tournament participants.
+
+## Core Features
+
+- Real-time chess move analysis
+- AI-generated strategic explanations
+- Position evaluation and scoring
+- Compatible with standard FEN notation
+
+## Contact
+
+For inquiries, visit https://castle-ai.vercel.app/

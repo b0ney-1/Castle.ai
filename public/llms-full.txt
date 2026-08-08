@@ -1,0 +1,7 @@
+# Castle.ai — Full Content Index
+
+## What is Castle.ai?
+Castle.ai is an AI chess assistant that analyzes chess positions using a state-of-the-art neural network engine. Unlike traditional engines that only show centipawn evaluations, Castle.ai explains the *why* behind every move recommendation in plain English.
+
+## Who is it for?
+Castle.ai is designed for chess players rated 800–2000 Elo who want to improve faster than traditional study methods allow.
