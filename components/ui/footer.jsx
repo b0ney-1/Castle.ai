@@ -29,7 +29,7 @@ const Footer = () => {
       style={{ pointerEvents: "none" }}
     >
       <div className="max-w-7xl mx-auto px-4 py-5">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start flex-wrap gap-6">
           {/* Left content */}
           <div style={{ pointerEvents: "auto" }}>
             <div className="text-gray-500 text-xs mb-4 pt-1 pb-1 pl-3 pr-3 bg-slate-100 max-w-[190px] relative z-[1]">
@@ -167,6 +167,38 @@ const Footer = () => {
                 </Link>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Trust signals and links */}
+        <div
+          className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center flex-wrap gap-4"
+          style={{ pointerEvents: "auto" }}
+        >
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            © 2025 Castle.ai — AI-Powered Chess Platform
+          </div>
+          <div className="flex items-center gap-6 text-sm">
+            <Link
+              href="/about"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="/contact"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              Contact
+            </Link>
+            <a
+              href="https://github.com/b0ney-1/Castle.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              Open Source
+            </a>
           </div>
         </div>
       </div>

@@ -37,22 +37,78 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata = {
-  title: "Castle.ai",
-  description: "Your move, powered by AI",
+  title: "Castle.ai - AI-Powered Chess Platform",
+  description: "Your move, powered by AI. Learn chess with AI-powered analysis, interactive puzzles, and personalized training.",
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
+  keywords: ["chess", "AI", "chess training", "chess puzzles", "chess analysis", "learn chess"],
+  authors: [{ name: "Metaschool", url: "https://metaschool.so" }],
+  creator: "Metaschool",
+  publisher: "Metaschool",
+  openGraph: {
+    title: "Castle.ai - AI-Powered Chess Platform",
+    description: "Your move, powered by AI",
+    url: "https://castle-ai.vercel.app",
+    siteName: "Castle.ai",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }) {
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Castle.ai",
+    "url": "https://castle-ai.vercel.app",
+    "logo": "https://castle-ai.vercel.app/favicon.ico",
+    "description": "AI-Powered Chess Platform for learning and improving chess skills",
+    "sameAs": [
+      "https://github.com/b0ney-1/Castle.ai",
+      "https://discord.com/invite/vbVMUwXWgc",
+      "https://twitter.com/0xmetaschool"
+    ],
+    "foundingDate": "2024",
+    "founder": {
+      "@type": "Organization",
+      "name": "Metaschool",
+      "url": "https://metaschool.so"
+    },
+    "knowsAbout": ["Chess", "Artificial Intelligence", "Machine Learning", "Game Analysis", "Chess Education"]
+  };
+
+  const softwareSchema = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Castle.ai",
+    "applicationCategory": "GameApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "operatingSystem": "Web",
+    "description": "AI-powered chess platform with interactive learning, puzzles, and real-time analysis"
+  };
+
   return (
     <html
       lang="en"
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
+        />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>

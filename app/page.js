@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
+import Navigation from "@/components/ui/navigation";
 
 const TypingAnimation = ({ text, className }) => {
   const [displayText, setDisplayText] = useState("");
@@ -189,8 +190,10 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
+    <>
+      <Navigation />
+      <div className="flex min-h-screen items-center justify-center pt-16">
+        <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
         <motion.div
           className={`${
             isLoading
@@ -225,6 +228,7 @@ export default function Home() {
             </AnimatePresence>
           </motion.div>
         )}
+        </div>
       </div>
       <AnimatePresence>
         {alertInfo.show && (
@@ -245,6 +249,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </>
   );
 }
