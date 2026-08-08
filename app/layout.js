@@ -37,10 +37,20 @@ const sourceSans = Source_Sans_3({
 });
 
 export const metadata = {
-  title: "Castle.ai",
-  description: "Your move, powered by AI",
+  title: "Castle.ai - AI-Powered Chess Engine & Move Analyzer",
+  description:
+    "Chess engines evaluate up to 200 million positions per second — Castle.ai brings that power to everyday players. Analyze moves across 20+ opening systems with neural network technology. Perfect for beginners, club players, and tournament competitors.",
+  keywords:
+    "chess ai engine, chess move analyzer, chess analysis, chess engine online, ai chess trainer, chess opening analysis, chess tactics, chess improvement",
+  openGraph: {
+    title: "Castle.ai - AI-Powered Chess Engine & Move Analyzer",
+    description:
+      "Real-time chess analysis powered by neural networks. Analyze positions across 20+ opening systems and improve your game.",
+    type: "website",
+    siteName: "Castle.ai",
+  },
   icons: {
-    icon: "/favicon.ico", // Updated path
+    icon: "/favicon.ico",
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
   },
