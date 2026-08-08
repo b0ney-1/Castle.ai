@@ -205,11 +205,12 @@ export default function Home() {
         >
           <Image
             src="/main.gif"
-            alt="Logo"
+            alt="Castle.ai AI chess platform animated logo"
             width={600}
             height={600}
             className="object-contain"
             priority
+            fetchpriority="high"
             unoptimized
           />
         </motion.div>
