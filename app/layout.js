@@ -53,6 +53,11 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <style dangerouslySetInnerHTML={{ __html: `body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}h1{font-size:2rem;color:inherit}.min-h-screen{min-height:100vh}.flex{display:flex}.items-center{align-items:center}.justify-center{justify-content:center}` }} />
+      </head>
       <body className={sourceSans.className}>
         <main>
           <AnimatePresence mode="wait" initial={false}>
