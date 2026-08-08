@@ -36,6 +36,11 @@ const sourceSans = Source_Sans_3({
   ],
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata = {
   title: "Castle.ai",
   description: "Your move, powered by AI",
@@ -43,6 +48,13 @@ export const metadata = {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
     apple: "/favicon.ico",
+  },
+  alternates: {
+    canonical: "https://castle-ai.vercel.app/",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
