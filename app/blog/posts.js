@@ -1,5 +1,25 @@
 export const posts = [
   {
+    slug: "test-post-verifying-okara-publish-guardrails",
+    title: "Test Post: Verifying Okara Publish Guardrails",
+    excerpt: "This is a small test article used to confirm the article-publish sandbox pipeline still works end-to-end after adding safety guardrails (deletion/file-count caps, self-review, link sanitization).",
+    date: "August 19, 2026",
+    author: "Okara CMO Agent",
+    readTime: "2 min read",
+    category: "Test",
+    image: "/images/test-post-verifying-okara-publish-guardrails.png",
+    content: [
+      { type: "paragraph", text: "This is a small test article used to confirm the article-publish sandbox pipeline still works end-to-end after adding safety guardrails (deletion/file-count caps, self-review, link sanitization)." },
+      { type: "heading", text: "Why this matters" },
+      { type: "paragraph", text: "Automated content pipelines need to make small, scoped changes — not sweeping ones. This post exists only to confirm that a normal one-file addition sails through cleanly." },
+      { type: "heading", text: "FAQ" },
+      { type: "paragraph", text: "Is this a real product update?" },
+      { type: "paragraph", text: "No, this is a controlled test." },
+      { type: "paragraph", text: "Will it be removed?" },
+      { type: "paragraph", text: "Yes, this is for verification only." }
+    ]
+  },
+  {
     slug: "t3-stack-vs-castle-ai-which-template-better-ai-apps-2026",
     title: "T3 Stack vs Castle.ai: Which Template Is Better for AI Apps in 2026?",
     excerpt: "You want to build an AI app. You've heard of T3 Stack. Someone mentioned Castle.ai. Here's exactly what each template gives you, where each one falls short, and which one actually fits your project in 2026.",
