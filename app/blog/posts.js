@@ -1,5 +1,19 @@
 export const posts = [
   {
+    slug: "semrush-alternatives",
+    title: "Semrush Alternatives for Startups That Cannot Justify the Price in 2026",
+    excerpt: "Rewrite test meta description for semrush alternatives.",
+    date: "September 25, 2026",
+    author: "Metaschool Team",
+    readTime: "2 min read",
+    category: "Comparison",
+    image: "/images/semrush-alternatives.png",
+    content: [
+      { type: "heading", text: "Semrush Alternatives" },
+      { type: "paragraph", text: "REWRITTEN BODY — rewrite test. Startups priced out of Semrush can use Ahrefs Webmaster Tools, Google Search Console and Ubersuggest." }
+    ]
+  },
+  {
     slug: "t3-stack-vs-castle-ai-which-template-better-ai-apps-2026",
     title: "T3 Stack vs Castle.ai: Which Template Is Better for AI Apps in 2026?",
     excerpt: "You want to build an AI app. You've heard of T3 Stack. Someone mentioned Castle.ai. Here's exactly what each template gives you, where each one falls short, and which one actually fits your project in 2026.",
