@@ -1,3 +1,0 @@
-alpha: original
-beta: AGENT EDITS THIS
-gamma: HUMAN WORK MUST SURVIVE
