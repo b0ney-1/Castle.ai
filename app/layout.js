@@ -39,6 +39,19 @@ const sourceSans = Source_Sans_3({
 export const metadata = {
   title: "Castle.ai",
   description: "Your move, powered by AI",
+  metadataBase: new URL("https://castle-ai.vercel.app"),
+  openGraph: {
+    title: "Castle.ai",
+    description: "Your move, powered by AI",
+    type: "website",
+    siteName: "Castle.ai",
+    images: [
+      {
+        url: "/images/chess_opening_ai.png",
+        alt: "Castle.ai",
+      },
+    ],
+  },
   icons: {
     icon: "/favicon.ico", // Updated path
     shortcut: "/favicon.ico",
