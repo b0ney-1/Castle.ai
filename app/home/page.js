@@ -92,7 +92,7 @@ function Dashboard() {
     router.push("/");
   };
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="min-h-screen bg-white dark:bg-black" aria-hidden="true" />;
 
   const cards = [
     {
