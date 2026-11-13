@@ -24,7 +24,7 @@ export default function BlogIndex() {
     }
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="min-h-screen bg-white dark:bg-black" aria-hidden="true" />;
 
   const containerVariants = {
     hidden: { opacity: 0 },

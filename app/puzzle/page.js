@@ -107,7 +107,7 @@ export default function PuzzleGallery() {
     </CarouselContent>
   );
 
-  if (!mounted) return null;
+  if (!mounted) return <div className="min-h-screen bg-white dark:bg-black" aria-hidden="true" />;
 
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
