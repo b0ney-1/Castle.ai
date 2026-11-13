@@ -184,6 +184,7 @@ function Dashboard() {
                       className={`rounded-full filter ${
                         theme === "dark" ? "" : "invert"
                       } ${!imagesLoaded[item.key] ? "invisible" : ""}`}
+                      priority
                       onLoad={() => handleImageLoad(item.key)}
                     />
                   </div>
