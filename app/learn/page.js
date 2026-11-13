@@ -163,6 +163,7 @@ export default function Learn() {
           </div>
         </nav>
 
+        <h1 className="sr-only">Learn Chess Openings</h1>
         <div className="flex-grow flex items-center justify-center p-6">
           <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto gap-8">
             {/* Chess Board Skeleton */}
@@ -249,6 +250,7 @@ export default function Learn() {
         </div>
       </nav>
 
+      <h1 className="sr-only">Learn Chess Openings</h1>
       <div className="flex-grow flex items-center justify-center p-6">
         <div className="flex flex-col md:flex-row w-full max-w-7xl mx-auto gap-8">
           <div className="w-full md:w-1/2 flex items-center justify-center">
