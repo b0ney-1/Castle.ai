@@ -170,7 +170,7 @@ function Dashboard() {
         <div className="container mx-auto px-4">
           <div className="flex justify-center space-x-12">
             {cards.map((item) => (
-              <Link key={item.href} href={item.href}>
+              <Link key={item.href} href={item.href} aria-label={item.title}>
                 <div className="bg-white dark:bg-black rounded-lg p-8 w-80 h-96 shadow-lg hover:shadow-2xl active:bg-slate-100 dark:hover:shadow-2xl dark:active:bg-slate-900 transition-all duration-300 transform hover:scale-105 flex flex-col items-center justify-center border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
                   <div className="flex justify-center mb-6 relative w-[150px] h-[150px]">
                     {!imagesLoaded[item.key] && (
