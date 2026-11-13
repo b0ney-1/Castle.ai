@@ -114,7 +114,7 @@ export default function BlogIndex() {
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
-          {posts.map((post) => (
+          {posts.map((post, index) => (
             <motion.article
               key={post.slug}
               variants={itemVariants}
@@ -128,7 +128,7 @@ export default function BlogIndex() {
                     fill
                     className="object-cover transition-transform duration-550 group-hover:scale-105"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    priority
+                    priority={index < 3}
                   />
                   <div className="absolute top-4 left-4">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-neutral-900/80 text-white dark:bg-white/90 dark:text-black backdrop-blur-sm">
