@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
+import PageOverview from "@/components/ui/page-overview";
 export default function PuzzleGallery() {
   const router = useRouter();
   const [puzzles, setPuzzles] = useState([]);
@@ -107,9 +108,10 @@ export default function PuzzleGallery() {
     </CarouselContent>
   );
 
-  if (!mounted) return null;
+  if (!mounted) return <PageOverview page="puzzle" />;
 
   return (
+    <>
     <div className="h-screen flex flex-col bg-white dark:bg-black overflow-hidden">
       <nav className="h-16 min-h-[64px] px-6 flex justify-between items-center bg-white dark:bg-black fixed w-full">
         <div
@@ -209,5 +211,7 @@ export default function PuzzleGallery() {
         </div>
       </div>
     </div>
+    <PageOverview page="puzzle" />
+    </>
   );
 }
