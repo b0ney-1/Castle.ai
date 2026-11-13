@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Moon, Sun } from "lucide-react";
 import { motion } from "framer-motion";
+import PageOverview from "@/components/ui/page-overview";
 
 function Dashboard() {
   const router = useRouter();
@@ -92,7 +93,7 @@ function Dashboard() {
     router.push("/");
   };
 
-  if (!mounted) return null;
+  if (!mounted) return <PageOverview page="dashboard" />;
 
   const cards = [
     {
@@ -200,6 +201,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
+      <PageOverview page="dashboard" />
     </motion.div>
   );
 }

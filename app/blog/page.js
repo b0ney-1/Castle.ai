@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Sun, Moon, ArrowRight, BookOpen, Clock, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { posts } from "./posts";
+import PageOverview from "@/components/ui/page-overview";
 
 export default function BlogIndex() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function BlogIndex() {
     }
   }, []);
 
-  if (!mounted) return null;
+  if (!mounted) return <PageOverview page="blog" />;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -179,6 +180,7 @@ export default function BlogIndex() {
           ))}
         </motion.div>
       </main>
+      <PageOverview page="blog" />
     </div>
   );
 }

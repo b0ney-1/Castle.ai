@@ -37,6 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+import PageOverview from "@/components/ui/page-overview";
 const openingsPerPage = 10;
 
 export default function Learn() {
@@ -196,6 +197,7 @@ export default function Learn() {
             </div>
           </div>
         </div>
+        <PageOverview page="learn" />
       </div>
     );
   }
@@ -343,6 +345,7 @@ export default function Learn() {
           </div>
         </div>
       </div>
+      <PageOverview page="learn" />
     </motion.div>
   );
 }
