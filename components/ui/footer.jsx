@@ -115,6 +115,7 @@ const Footer = () => {
               <div className="flex items-center">
                 <Image
                   alt="crystal ball"
+                  title="metaschool crystal ball logo"
                   src="https://metaschool.so/_next/static/media/crystalball.074cad21.webp"
                   width={20}
                   height={20}

@@ -179,6 +179,7 @@ function Dashboard() {
                     <Image
                       src={item.src}
                       alt={item.title}
+                      title={item.title}
                       width={150}
                       height={150}
                       className={`rounded-full filter ${
