@@ -30,6 +30,7 @@ export function LoadingSpinner({
       <Image
         src="/public/main.gif"
         alt="Loading..."
+        title="Loading"
         width={600}
         height={600}
         className={imageClasses}

@@ -206,6 +206,7 @@ export default function Home() {
           <Image
             src="/main.gif"
             alt="Logo"
+            title="Castle AI logo"
             width={600}
             height={600}
             className="object-contain"
