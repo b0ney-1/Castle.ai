@@ -210,6 +210,7 @@ export default function Home() {
             height={600}
             className="object-contain"
             priority
+            fetchPriority="high"
             unoptimized
           />
         </motion.div>
