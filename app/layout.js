@@ -46,6 +46,29 @@ export const metadata = {
   },
 };
 
+const BASE_URL = "https://castle-ai.vercel.app";
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${BASE_URL}/#organization`,
+      name: "Castle.ai",
+      url: BASE_URL,
+      logo: `${BASE_URL}/favicon.ico`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${BASE_URL}/#website`,
+      name: "Castle.ai",
+      url: BASE_URL,
+      description: "Your move, powered by AI",
+      publisher: { "@id": `${BASE_URL}/#organization` },
+    },
+  ],
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -54,6 +77,10 @@ export default function RootLayout({ children }) {
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className={sourceSans.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <main>
           <AnimatePresence mode="wait" initial={false}>
             <ThemeProvider
