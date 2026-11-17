@@ -46,6 +46,27 @@ export const metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://castle-ai.vercel.app/#organization",
+      name: "Castle.ai",
+      url: "https://castle-ai.vercel.app",
+      description: "Your move, powered by AI",
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://castle-ai.vercel.app/#website",
+      name: "Castle.ai",
+      url: "https://castle-ai.vercel.app",
+      description: "Your move, powered by AI",
+      publisher: { "@id": "https://castle-ai.vercel.app/#organization" },
+    },
+  ],
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
@@ -54,6 +75,10 @@ export default function RootLayout({ children }) {
       className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable}`}
     >
       <body className={sourceSans.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <main>
           <AnimatePresence mode="wait" initial={false}>
             <ThemeProvider
