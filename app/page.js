@@ -189,6 +189,7 @@ export default function Home() {
   };
 
   return (
+    <>
     <div className="flex min-h-screen items-center justify-center">
       <div className="flex flex-row items-center justify-center space-x-12 w-full max-w-6xl">
         <motion.div
@@ -246,5 +247,34 @@ export default function Home() {
         )}
       </AnimatePresence>
     </div>
+    <section className="max-w-3xl mx-auto px-6 py-12 space-y-6">
+      <h2 className="text-3xl font-bold">Learn, practice and play chess with AI</h2>
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
+        Castle.ai is a free, open source chess platform powered by AI. Create an
+        account to play games against an AI opponent, study chess openings with
+        step-by-step explanations, and sharpen your tactics with a gallery of
+        chess puzzles.
+      </p>
+      <h3 className="text-2xl font-semibold">How it works</h3>
+      <ul className="list-disc pl-6 space-y-2 text-lg text-neutral-600 dark:text-neutral-300">
+        <li>
+          <strong>Play:</strong> start a game on the board and make your move
+          against the AI.
+        </li>
+        <li>
+          <strong>Learn:</strong> browse chess openings and walk through each
+          one to understand the ideas behind the moves.
+        </li>
+        <li>
+          <strong>Puzzles:</strong> solve chess puzzles to improve your tactical
+          vision, with your progress saved to your account.
+        </li>
+      </ul>
+      <p className="text-lg text-neutral-600 dark:text-neutral-300">
+        Want to go deeper? Read the Castle.ai blog for chess tips and guides,
+        or log in above to get started.
+      </p>
+    </section>
+    </>
   );
 }
